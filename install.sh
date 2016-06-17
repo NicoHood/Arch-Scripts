@@ -69,11 +69,11 @@ vgcreate arch-vg /dev/mapper/lvm
 lvcreate -L 4G arch-vg -n swap
 lvcreate -l 50%VG arch-vg -n backup
 lvcreate -l 100%FREE arch-vg -n root
-mkfs.ext4 /dev/mapper/arch-vg-root
-mkfs.ext4 /dev/mapper/arch-vg-backup
-mount /dev/mapper/arch-vg-root /mnt
-mkswap /dev/mapper/arch-vg-swap
-swapon /dev/mapper/arch-vg-swap
+mkfs.ext4 /dev/mapper/arch--vg-root
+mkfs.ext4 /dev/mapper/arch--vg-backup
+mount /dev/mapper/arch--vg-root /mnt
+mkswap /dev/mapper/arch--vg-swap
+swapon /dev/mapper/arch--vg-swap
 
 # Preparing the boot partition
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Preparing_the_boot_partition_5
