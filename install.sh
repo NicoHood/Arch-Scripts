@@ -34,9 +34,6 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Stop on errors
-set -e
-
 # Set time
 timedatectl set-ntp true
 
@@ -54,9 +51,12 @@ timedatectl set-ntp true
 #n p 2 [Enter] [Enter]
 #t 2 8e
 #w
-echo "Formatiing disk..."
+echo "Formating disk..."
 echo "o\nn\np\n1\n\n+512M\na\nn\np\n2\n\n\nt\n2\n8e\np\nw" | fdisk $CFG_SDX
 echo ""
+
+# Stop on errors
+set -e
 
 # Preparing the logical volumes
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Preparing_the_logical_volumes
