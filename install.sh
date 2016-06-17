@@ -13,6 +13,7 @@ CFG_USERNAME=Arch
 CFG_USER_PASSWD=toor
 
 # Boot cd NOT in EFI mode
+echo "Checking for EFI system (error is expected for bios boot)."
 ls /sys/firmware/efi/efivars
 if [[ $? -eq 0 ]]; then
     echo "Error: Running in EFI mode."
@@ -114,12 +115,8 @@ pacman -S --needed --noconfirm -q grub os-prober intel-ucode
 
 # Note uuid and add it to grub config efibootmgr
 UUID=`blkid ${CFG_SDX}2 -o value | head -n 1`
-sed -i 's/^GRUB_CMDLINE_LINUX="/\0cryptdevice=UUID=${UUID}:lvm root=/dev/mapper/arch--vg-root/g' /etc/default/grub
+sed -i "s#^GRUB_CMDLINE_LINUX=\"#\0cryptdevice=UUID=${UUID}:lvm root=/dev/mapper/arch--vg-root#g" /etc/default/grub
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
-# TODO remove
-#nano /etc/default/grub
-#GRUB_CMDLINE_LINUX="... cryptdevice=UUID=<sda2-device-UUID>:lvm root=/dev/mapper/arch--vg-root ..."
-#GRUB_ENABLE_CRYPTODISK=y
 
 mkdir /run/lvm
 mount --bind /hostrun/lvm /run/lvm
@@ -129,9 +126,6 @@ grub-install --target=i386-pc ${CFG_SDX}
 # Install sudo, if missing and add the wheel group to the sudoers
 pacman -S --needed --noconfirm -q sudo
 sed -i '/%wheel.ALL=(ALL) ALL/s/^# //g' /etc/sudoers
-#EDITOR=nano
-#visudo
-#%wheel      ALL=(ALL) ALL
 
 # Add a new (non root) user, make sure sudo works before you remove the root password!
 useradd -m -G wheel users uucp -s /bin/bash ${CFG_USERNAME,,}
