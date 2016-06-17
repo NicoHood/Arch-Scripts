@@ -1,8 +1,12 @@
 #!/bin/bash
 
-# Arch installation (encrypted efi)
-#https://gist.githubusercontent.com/wuputah/4982514/raw/017cdeef4cc8ef14401092e1b4db3250e6bac0b1/archlinux-install.sh
+# Check for root user
+if [[ $EUID -ne 0 ]]; then
+  echo "You must be a root user" 2>&1
+  exit 1
+fi
 
+set -x
 CFG_KEYBOARD=uk
 CFG_SDX=/dev/sda
 CFG_BOOT_PASSWD=toor
@@ -11,6 +15,9 @@ CFG_TIMEZONE=Europe/Berlin
 CFG_HOSTNAME=arch
 CFG_USERNAME=Arch
 CFG_USER_PASSWD=toor
+set +x
+echo "Press enter to continue installation with those settings."
+read
 
 # Boot cd NOT in EFI mode
 echo "Checking for EFI system (error is expected for bios boot)."
@@ -121,7 +128,6 @@ mkinitcpio -p linux
 pacman -S --needed --noconfirm -q grub os-prober intel-ucode
 
 # Note uuid and add it to grub config efibootmgr
-echo "${UUID}"
 sed -i "s#^GRUB_CMDLINE_LINUX=\"#\0cryptdevice=UUID=${UUID}:lvm root=/dev/mapper/arch--vg-root#g" /etc/default/grub
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
 
@@ -130,22 +136,29 @@ mount --bind /hostrun/lvm /run/lvm
 grub-mkconfig -o /boot/grub/grub.cfg
 grub-install --target=i386-pc ${CFG_SDX}
 
+# Configuring fstab and crypttab
+# https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_fstab_and_crypttab_2
+echo "cryptboot\t${CFG_SDX}1\tnone\tluks" >> /etc/crypttab
+
 # Install sudo, if missing and add the wheel group to the sudoers
 pacman -S --needed --noconfirm -q sudo
 sed -i '/%wheel.ALL=(ALL) ALL/s/^# //g' /etc/sudoers
 
 # Add a new (non root) user, make sure sudo works before you remove the root password!
-useradd -m -G wheel -G users -G uucp -s /bin/bash -p ${CFG_USER_PASSWD} ${CFG_USERNAME,,}
+useradd -m -G wheel,users,uucp -s /bin/bash ${CFG_USERNAME,,}
+echo "${CFG_USERNAME,,}:${CFG_USER_PASSWD}" | chpasswd
 chfn -f ${CFG_USERNAME} ${CFG_USERNAME,,}
+
+# Disable root
+passwd -l root
 
 umount /run/lvm
 exit
 EOF
 
+echo "Press enter to unmount /mnt now and reboot."
+read
 umount /mnt -R
-
-exit
-
 reboot
 
 # You have to type the password twice when booting.
@@ -161,6 +174,8 @@ pacman -Syyu
 # TODO lts kernel? -> initramfs
 # TODO secure grub with a password
 
+# Arch installation (encrypted efi)
+#https://gist.githubusercontent.com/wuputah/4982514/raw/017cdeef4cc8ef14401092e1b4db3250e6bac0b1/archlinux-install.sh
 
 
 # TODO use reflector to rate the mirrorlist
