@@ -94,10 +94,13 @@ mount --bind /run /mnt/hostrun
 # https://wiki.archlinux.org/index.php/beginners'_guide#Install_the_base_packages
 pacstrap /mnt base base-devel sudo bash-completion net-tools
 genfstab -U /mnt > /mnt/etc/fstab
+UUID=`blkid ${CFG_SDX}2 -o value | head -n 1`
+
 arch-chroot /mnt /bin/bash <<EOF
 
 # Stop on errors
 set -e
+set -x
 
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen
@@ -107,6 +110,7 @@ echo 'KEYMAP=uk' > /etc/vconsole.conf
 ln -s /usr/share/zoneinfo/$CFG_TIMEZONE /etc/localtime
 hwclock --systohc --utc
 echo arch > /etc/hostname
+#TODO Add the same hostname to /etc/hosts
 
 # Configuring mkinitcpio
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_5
@@ -117,7 +121,7 @@ mkinitcpio -p linux
 pacman -S --needed --noconfirm -q grub os-prober intel-ucode
 
 # Note uuid and add it to grub config efibootmgr
-UUID=`blkid ${CFG_SDX}2 -o value | head -n 1`
+echo "${UUID}"
 sed -i "s#^GRUB_CMDLINE_LINUX=\"#\0cryptdevice=UUID=${UUID}:lvm root=/dev/mapper/arch--vg-root#g" /etc/default/grub
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
 
