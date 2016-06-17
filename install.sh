@@ -138,7 +138,7 @@ grub-install --target=i386-pc ${CFG_SDX}
 
 # Configuring fstab and crypttab
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_fstab_and_crypttab_2
-echo "cryptboot\t${CFG_SDX}1\tnone\tluks" >> /etc/crypttab
+echo "cryptboot ${CFG_SDX}1 none luks" >> /etc/crypttab
 
 # Install sudo, if missing and add the wheel group to the sudoers
 pacman -S --needed --noconfirm -q sudo
