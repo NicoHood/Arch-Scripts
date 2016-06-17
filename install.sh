@@ -99,7 +99,7 @@ mount --bind /run /mnt/hostrun
 
 # Install the base packages, fstab and chroot
 # https://wiki.archlinux.org/index.php/beginners'_guide#Install_the_base_packages
-pacstrap /mnt base base-devel sudo bash-completion net-tools
+pacstrap /mnt base base-devel sudo bash-completion
 genfstab -U /mnt > /mnt/etc/fstab
 UUID=`blkid ${CFG_SDX}2 -o value | head -n 1`
 
@@ -165,11 +165,12 @@ reboot
 # Do NOT add a 2nd keyfile to the initramfs.
 # Otherwise any user can dump the initramfs and its key. This is a security risk.
 # As an option you could not encrypt the boot partition and do a "normal" setup instead.
+# If the keyboard does not work when booting try to run the fallback initramfs.
+# Then once the system is booted run `mkinitcpio -p linux`.
+# Make sure to use `sudo` on the new system for administrative commands.
 
-
-
-systemctl start dhcpcd
-pacman -Syyu
+sudo systemctl start dhcpcd
+sudo pacman -Syyu
 
 # TODO lts kernel? -> initramfs
 # TODO secure grub with a password

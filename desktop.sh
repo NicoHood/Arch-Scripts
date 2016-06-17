@@ -9,7 +9,7 @@
 function installPackages {
     # Pacman for Arch Linux
     PACKAGES=$@
-    pacman -Q $PACKAGES >/dev/null
+    pacman -Q $PACKAGES >/dev/null 1>&2
     if [[ $? -ne 0 ]]; then
         # TODO is this echo really required?
         echo "Installing packages $PACKAGES"
@@ -60,7 +60,7 @@ TERMINAL=1
 # TODO check if this also applies to ALARM
 ARCH=`cat /etc/os-release | grep 'Arch Linux' | wc -l`
 
-if [[ ARCH -ne 0 ]]; then
+if [[ ARCH -eq 0 ]]; then
     echo "Error: No Arch Linux OS could be detected. Aborting."
     exit 1
 fi
@@ -126,14 +126,14 @@ fi
 
 # Install base-devel group if not installed in any case
 pacman -Qg base-devel >/dev/null
-if [[ $? -ne 0 ]]; then        
+if [[ $? -ne 0 ]]; then
     sudo pacman -S --needed --noconfirm -q base-devel
     if [[ $? -ne 0 ]]; then
         echo "Error: Installation failed."
         exit 1
     fi
 fi
-    
+
 # Create build irectory if it does not exist
 mkdir -p $BUILD_DIR
 
@@ -157,7 +157,7 @@ fi
 
 if [[ XORG -eq 1 ]];then
     echo "Installing X-Org..."
-    
+
     # Install X-server
     installPackages xorg-server mesa
 
@@ -178,15 +178,15 @@ if [[ XORG -eq 1 ]];then
         if [[ $INTEL_CARD -eq 1 ]]; then
             installPackages xf86-video-intel
         elif [[ $NVIDIA_CARD -eq 1 ]]; then
-            installPackages xf86-video-nouveau 	
-        elif [[ $AMD_CARD -eq 1 ]]; then
-            installPackages xf86-video-amdgpu
+            installPackages xf86-video-nouveau
         elif [[ $ATI_CARD -eq 1 ]]; then
             installPackages xf86-video-ati
+        elif [[ $AMD_CARD -eq 1 ]]; then
+            installPackages xf86-video-amdgpu
         else
             echo "Warning: No graphic card found. Installing fbdev and vesa. You might want to search yours with:"
             echo "lspci | grep -e VGA -e 3D"
-            echo "pacman -Ss xf86-video"        
+            echo "pacman -Ss xf86-video"
             installPackages xf86-video-fbdev xf86-video-vesa
         fi
     # TODO raspi drivers
@@ -202,9 +202,10 @@ if [[ LIGHTDM -eq 1 ]];then
     systemctl is-active lightdm.service
     if [[ $? -ne 0 ]]; then
         echo "Enabling lightdm service..."
+        # TODO ask for enabling
         sudo systemctl enable lightdm.service
     fi
-    
+
     # TODO this requires arc theme and background as dependency
     # TODO gui config messes up settings
     LIGHTDM_GREETER_CFG=/etc/lightdm/lightdm-gtk-greeter.conf
@@ -220,7 +221,7 @@ if [[ XFCE -eq 1 ]];then
     echo "Installing xfce..."
     installPackages exo garcon gtk-xfce-engine tumbler xfce4-mixer xfce4-panel \
                 xfce4-power-manager xfce4-session xfce4-settings xfconf \
-                xfdesktop xfwm4  
+                xfdesktop xfwm4
 fi
 
 
@@ -232,7 +233,7 @@ if [[ ARC_THEME -eq 1 ]];then
     # Install Arc theme dependencies
     echo "Installing/updating Arc theme..."
     installPackages gnome-themes-standard gtk-engine-murrine \
-                    elementary-icon-theme autoconf automake git 
+                    elementary-icon-theme autoconf automake git
 
     # Arc theme and icons have to be installed from AUR or from git
     # See the official build instructions for the most up to date installation instructions
@@ -254,7 +255,7 @@ if [[ ARC_THEME -eq 1 ]];then
         # Build and install
         ./autogen.sh --prefix=/usr
         sudo make install
-        
+
         # Go to `Settings->Appearance`
         # Go to `Style`
         # Enable the theme (Arc-Darker)
@@ -292,11 +293,11 @@ if [[ ARC_ICON_THEME -eq 1 ]];then
     if [[ ARC_ICON_THEME -eq 1 ]];then
         # Before you compile add elementary as fallback icon theme
         sed -ie "s/Inherits=.*/Inherits=elementary,Adwaita,gnome,hicolor/" Arc/index.theme
-    
+
         # Build and install
         ./autogen.sh --prefix=/usr
         sudo make install
-        
+
         # Go to `Settings->Appearance`
         # Go to `Icons`
         # Enable the theme (Arc)
@@ -367,7 +368,7 @@ if [[ DESKTOP -eq 1 ]];then
             exit 1
         fi
         sudo cp glacier.jpg /usr/share/backgrounds/xfce/glacier.jpg
-    fi    
+    fi
     xfconf-query -c xfce4-desktop -p /desktop-icons/style -s 0
     xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s "/usr/share/backgrounds/xfce/glacier.jpg"
 fi
@@ -380,7 +381,7 @@ fi
 if [[ XFCE_TWEAKS -eq 1 ]];then
     # Install several Xfce related tweaks/fixes
     echo "Installing Xfce tweaks..."
-    
+
     # Go to `Settings->Window Manager Tweaks`
     # Go to `Cycling`
     # Enable `Cycle through windows on all workspaces`
