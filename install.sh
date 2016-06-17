@@ -95,7 +95,7 @@ pacstrap /mnt base base-devel sudo bash-completion net-tools
 genfstab -U /mnt > /mnt/etc/fstab
 arch-chroot /mnt /bin/bash -e <<EOF
 
-sed -i '/en_US.UTF-8/s/^#//g' /etc/locale.conf
+sed -i '/en_US.UTF-8/s/^#//g' /etc/locale.gen
 locale-gen
 echo 'LANG=en_US.UTF-8' > /etc/locale.conf
 echo 'KEYMAP=uk' > /etc/vconsole.conf
@@ -110,7 +110,7 @@ sed -e 's/^HOOKS=".*block/\0 keymap encrypt lvm2/g' /etc/mkinitcpio.conf
 mkinitcpio -p linux
 
 # Install grub
-pacman -S grub os-prober intel-ucode
+pacman -S --needed --noconfirm -q grub os-prober intel-ucode
 
 # Note uuid and add it to grub config efibootmgr
 UUID=`blkid ${CFG_SDX}2 -o value | head -n 1`
@@ -127,7 +127,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 grub-install --target=i386-pc ${CFG_SDX}
 
 # Install sudo, if missing and add the wheel group to the sudoers
-pacman -S sudo
+pacman -S --needed --noconfirm -q sudo
 TAB=$'\t'
 sed -i '/%wheel${TAB}ALL=(ALL) ALL/s/^# //g' /etc/sudoers
 #EDITOR=nano
@@ -135,8 +135,8 @@ sed -i '/%wheel${TAB}ALL=(ALL) ALL/s/^# //g' /etc/sudoers
 #%wheel      ALL=(ALL) ALL
 
 # Add a new (non root) user, make sure sudo works before you remove the root password!
-useradd -m -G wheel -s /bin/bash ${CFG_USERNAME,,}
-passwd ${CFG_USERNAME,,} -p ${CFG_USER_PASSWD}
+useradd -m -G wheel users uucp -s /bin/bash ${CFG_USERNAME,,}
+echo "${CFG_USER_PASSWD}" | passwd ${CFG_USERNAME,,} --stdin
 chfn -f ${CFG_USERNAME} ${CFG_USERNAME,,}
 
 umount /run/lvm
