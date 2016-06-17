@@ -14,7 +14,7 @@ CFG_USER_PASSWD=toor
 
 # Boot cd NOT in EFI mode
 ls /sys/firmware/efi/efivars
-if [[ $? -ne 0 ]]; then
+if [[ $? -eq 0 ]]; then
     echo "Error: Running in EFI mode."
     exit 1
 fi
@@ -51,13 +51,15 @@ timedatectl set-ntp true
 #n p 2 [Enter] [Enter]
 #t 2 8e
 #w
+echo "Formatiing disk..."
 echo "o\nn\np\n1\n\n+512M\na\nn\np\n2\n\n\nt\n2\n8e\np\nw" | fdisk $CFG_SDX
 
 # Preparing the logical volumes
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Preparing_the_logical_volumes
 # Create luks
-echo "YES\n$CFG_ROOT_PASSWD\n$CFG_BOOT_PASSWD\n" | cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 --use-random ${CFG_SDX}2
-cryptsetup open --type luks ${CFG_SDX}2 lvm
+echo "Creating root luks + lvm partitions..."
+echo "YES\n$CFG_ROOT_PASSWD\n$CFG_ROOT_PASSWD\n" | cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 --use-random ${CFG_SDX}2
+echo "$CFG_ROOT_PASSWD\n" | cryptsetup open --type luks ${CFG_SDX}2 lvm
 pvcreate /dev/mapper/lvm
 vgcreate arch-vg /dev/mapper/lvm
 lvcreate -L 4G arch-vg -n swap
@@ -71,8 +73,9 @@ swapon /dev/mapper/arch-vg-swap
 
 # Preparing the boot partition
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Preparing_the_boot_partition_5
+echo "Creating boot luks..."
 echo "YES\n$CFG_BOOT_PASSWD\n$CFG_BOOT_PASSWD\n" | cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 --use-random ${CFG_SDX}1
-cryptsetup open --type luks ${CFG_SDX}1 cryptboot
+echo "$CFG_BOOT_PASSWD\n" | cryptsetup open --type luks ${CFG_SDX}1 cryptboot
 mkfs.ext4 /dev/mapper/cryptboot
 mkdir /mnt/boot
 mount /dev/mapper/cryptboot /mnt/boot
