@@ -95,7 +95,7 @@ pacstrap /mnt base base-devel sudo bash-completion net-tools
 genfstab -U /mnt > /mnt/etc/fstab
 arch-chroot /mnt /bin/bash -e <<EOF
 
-sed -i '/en_US.UTF-8/s/^#//g' /etc/locale.gen
+echo 'en_US.UTF-8' >> /etc/locale.gen
 locale-gen
 echo 'LANG=en_US.UTF-8' > /etc/locale.conf
 echo 'KEYMAP=uk' > /etc/vconsole.conf
@@ -106,7 +106,7 @@ echo arch > /etc/hostname
 
 # Configuring mkinitcpio
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_5
-sed -e 's/^HOOKS=".*block/\0 keymap encrypt lvm2/g' /etc/mkinitcpio.conf
+sed -i 's/^HOOKS=".*block/\0 keymap encrypt lvm2/g' /etc/mkinitcpio.conf
 mkinitcpio -p linux
 
 # Install grub
@@ -114,7 +114,7 @@ pacman -S --needed --noconfirm -q grub os-prober intel-ucode
 
 # Note uuid and add it to grub config efibootmgr
 UUID=`blkid ${CFG_SDX}2 -o value | head -n 1`
-sed -e 's/^GRUB_CMDLINE_LINUX="/\0cryptdevice=UUID=${UUID}:lvm root=/dev/mapper/arch--vg-root/g' /etc/default/grub
+sed -i 's/^GRUB_CMDLINE_LINUX="/\0cryptdevice=UUID=${UUID}:lvm root=/dev/mapper/arch--vg-root/g' /etc/default/grub
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
 # TODO remove
 #nano /etc/default/grub
@@ -140,6 +140,7 @@ echo "${CFG_USER_PASSWD}" | passwd ${CFG_USERNAME,,} --stdin
 chfn -f ${CFG_USERNAME} ${CFG_USERNAME,,}
 
 umount /run/lvm
+rm -r /run/lvm
 exit
 EOF
 
