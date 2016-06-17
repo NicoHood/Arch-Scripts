@@ -9,7 +9,7 @@ CFG_BOOT_PASSWD=toor
 CFG_ROOT_PASSWD=toor
 CFG_TIMEZONE=Europe/Berlin
 CFG_HOSTNAME=arch
-CFG_USERNAME=arch
+CFG_USERNAME=Arch
 CFG_USER_PASSWD=toor
 
 # Boot cd NOT in EFI mode
@@ -91,10 +91,11 @@ mount --bind /run /mnt/hostrun
 
 # Install the base packages, fstab and chroot
 # https://wiki.archlinux.org/index.php/beginners'_guide#Install_the_base_packages
-pacstrap -i /mnt base base-devel sudo bash-completion net-tools
+pacstrap /mnt base base-devel sudo bash-completion net-tools
 genfstab -U /mnt > /mnt/etc/fstab
-arch-chroot /mnt /bin/bash
-sudo sed -i '/en_US.UTF-8/s/^#//g' /etc/locale.conf
+arch-chroot /mnt /bin/bash -e <<EOF
+
+sed -i '/en_US.UTF-8/s/^#//g' /etc/locale.conf
 locale-gen
 echo 'LANG=en_US.UTF-8' > /etc/locale.conf
 echo 'KEYMAP=uk' > /etc/vconsole.conf
@@ -103,42 +104,48 @@ ln -s /usr/share/zoneinfo/$CFG_TIMEZONE /etc/localtime
 hwclock --systohc --utc
 echo arch > /etc/hostname
 
-exit
-
 # Configuring mkinitcpio
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_5
-nano /etc/mkinitcpio.conf
-HOOKS="... block ... keymap encrypt lvm2 ... filesystems ..."
+sed -e 's/^HOOKS=".*block/\0 keymap encrypt lvm2/g' /etc/mkinitcpio.conf
 mkinitcpio -p linux
 
 # Install grub
 pacman -S grub os-prober intel-ucode
 
 # Note uuid and add it to grub config efibootmgr
-blkid
-nano /etc/default/grub
-GRUB_CMDLINE_LINUX="... cryptdevice=UUID=<sda2-device-UUID>:lvm root=/dev/mapper/arch--vg-root ..."
-GRUB_ENABLE_CRYPTODISK=y
+UUID=`blkid ${CFG_SDX}2 -o value | head -n 1`
+sed -e 's/^GRUB_CMDLINE_LINUX="/\0cryptdevice=UUID=${UUID}:lvm root=/dev/mapper/arch--vg-root/g' /etc/default/grub
+echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
+# TODO remove
+#nano /etc/default/grub
+#GRUB_CMDLINE_LINUX="... cryptdevice=UUID=<sda2-device-UUID>:lvm root=/dev/mapper/arch--vg-root ..."
+#GRUB_ENABLE_CRYPTODISK=y
 
 mkdir /run/lvm
 mount --bind /hostrun/lvm /run/lvm
 grub-mkconfig -o /boot/grub/grub.cfg
-grub-install --target=i386-pc /dev/sda
+grub-install --target=i386-pc ${CFG_SDX}
 
 # Install sudo, if missing and add the wheel group to the sudoers
 pacman -S sudo
-EDITOR=nano
-visudo
-%wheel      ALL=(ALL) ALL
+TAB=$'\t'
+sed -i '/%wheel${TAB}ALL=(ALL) ALL/s/^# //g' /etc/sudoers
+#EDITOR=nano
+#visudo
+#%wheel      ALL=(ALL) ALL
 
 # Add a new (non root) user, make sure sudo works before you remove the root password!
-useradd -m -G wheel -s /bin/bash username
-passwd username
-chfn -f RealName username
+useradd -m -G wheel -s /bin/bash ${CFG_USERNAME,,}
+passwd ${CFG_USERNAME,,} -p ${CFG_USER_PASSWD}
+chfn -f ${CFG_USERNAME} ${CFG_USERNAME,,}
 
 umount /run/lvm
 exit
+EOF
+
 umount /mnt -R
+
+exit
 
 reboot
 
