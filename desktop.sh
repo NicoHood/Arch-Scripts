@@ -361,7 +361,7 @@ if [[ DESKTOP -eq 1 ]];then
     echo "Installing desktop..."
     # Check if wallpaper exists. If not show website link
     if [[ ! -e /usr/share/backgrounds/xfce/glacier.jpg ]]; then
-        if [[ ! -e /usr/share/backgrounds/xfce/glacier.jpg ]]; then
+        if [[ ! -e glacier.jpg ]]; then
             echo "Error: No desktop background found."
             echo "Please download it from: https://pixabay.com/en/glacier-mountain-snow-hillside-869593/"
             echo "Place it into this folder as 'glacier.jpg' and rerun this script."
