@@ -94,7 +94,10 @@ mount --bind /run /mnt/hostrun
 # https://wiki.archlinux.org/index.php/beginners'_guide#Install_the_base_packages
 pacstrap /mnt base base-devel sudo bash-completion net-tools
 genfstab -U /mnt > /mnt/etc/fstab
-arch-chroot /mnt /bin/bash -e <<EOF
+arch-chroot /mnt /bin/bash <<EOF
+
+# Stop on errors
+set -e
 
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen
@@ -128,12 +131,10 @@ pacman -S --needed --noconfirm -q sudo
 sed -i '/%wheel.ALL=(ALL) ALL/s/^# //g' /etc/sudoers
 
 # Add a new (non root) user, make sure sudo works before you remove the root password!
-useradd -m -G wheel users uucp -s /bin/bash ${CFG_USERNAME,,}
-echo "${CFG_USER_PASSWD}" | passwd ${CFG_USERNAME,,} --stdin
+useradd -m -G wheel -G users -G uucp -s /bin/bash -p ${CFG_USER_PASSWD} ${CFG_USERNAME,,}
 chfn -f ${CFG_USERNAME} ${CFG_USERNAME,,}
 
 umount /run/lvm
-rm -r /run/lvm
 exit
 EOF
 
