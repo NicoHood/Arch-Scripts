@@ -323,6 +323,7 @@ if [[ PLANK -eq 1 ]];then
     echo "Installing plank..."
     installPackages plank
     dconf write /net/launchpad/plank/docks/dock1/theme "'Transparent'"
+    mkdir -p ~/.config/autostart/
     cp /usr/share/applications/plank.desktop ~/.config/autostart/
 fi
 
@@ -450,6 +451,7 @@ if [[ TERMINAL -eq 1 ]];then
     installPackages xfce4-terminal
     TERMINAL_CFG=~/.config/xfce4/terminal/terminalrc
     if [[ ! -e "$TERMINAL_CFG" ]]; then
+        mkdir -p ~/.config/xfce4/terminal
         echo "[Configuration]" > $TERMINAL_CFG
     fi
     sed -i '/^FontName=.*/d' $TERMINAL_CFG

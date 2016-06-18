@@ -167,6 +167,7 @@ reboot
 # As an option you could not encrypt the boot partition and do a "normal" setup instead.
 # If the keyboard does not work when booting try to run the fallback initramfs.
 # Then once the system is booted run `mkinitcpio -p linux`.
+# Change the default passwords after reboot!
 # Make sure to use `sudo` on the new system for administrative commands.
 
 sudo systemctl start dhcpcd
