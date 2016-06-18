@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Check for root user
-if [[ $EUID -ne 0 ]]; then
-  echo "You must be a root user" 2>&1
+if [[ $EUID -eq 0 ]]; then
+  echo "You must NOT be a root user" 2>&1
   exit 1
 fi
 
@@ -217,4 +217,4 @@ PKG_ALL+="$PKG_DEV"
 PKG_ALL+="$PKG_OPT"
 PKG_ALL+="$PKG_HCK"
 
-pacman -S --needed "$PKG_ALL"
+sudo pacman -S --needed "$PKG_ALL"
