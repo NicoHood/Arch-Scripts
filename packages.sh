@@ -129,7 +129,7 @@ PKG_DESKTOP+="accountsservice light-locker "
 # xfce
 PKG_DESKTOP+="exo garcon gtk-xfce-engine tumbler xfce4-mixer xfce4-panel "
 PKG_DESKTOP+="xfce4-power-manager xfce4-session xfce4-settings xfconf xfdesktop "
-PKG_DESKTOP+="xfwm4"
+PKG_DESKTOP+="xfwm4 "
 
 # TODO arc theme + icons
 # TODO git ad dep here?
