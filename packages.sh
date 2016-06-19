@@ -6,59 +6,8 @@ if [[ $EUID -eq 0 ]]; then
   exit 1
 fi
 
-################################################################################
 # Get system information
-################################################################################
-
-# Check if running on Arch linux
-# TODO check if this also applies to ALARM
-ARCH=`cat /etc/os-release | grep 'Arch Linux' | wc -l`
-
-if [[ ARCH -eq 0 ]]; then
-    echo "Error: No Arch Linux OS could be detected. Aborting."
-    exit 1
-fi
-
-# Find out which device this script runs on
-CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710' /proc/cpuinfo`
-CPU_ARM7=`uname -m | grep 'armv7l' | wc -l`
-CPU_ARM6=`uname -m | grep 'armv6l' | wc -l`
-CPU_ARM6ARM7=`uname -m | grep 'armv6l\|armv7l' | wc -l`
-CPU_X64=`uname -m | grep 'x86_64' | wc -l`
-
-# Check if running inside vm (none for normal host mode)
-CPU_VM=`systemd-detect-virt | grep 'oracle' | wc -l`
-
-# Check which RPi we are on (in case)
-#TODO does not work -> pi3 recognized as pi3
-RPI_1=`grep -m1 -c BCM2708 /proc/cpuinfo`
-RPI_2=`grep -m1 -c BCM2709 /proc/cpuinfo`
-RPI_3=`grep -m1 -c BCM2710 /proc/cpuinfo`
-
-# Check that we have a known configuration
-if [[ CPU_ARM6ARM7 -eq 1 ]]; then
-    echo "Found ARM CPU"
-    if [[ $CPU_RPI -eq 1 ]]; then
-        if [[ $RPI_1 -eq 1 ]]; then
-            echo "Found Raspberry Pi 1"
-        elif [[ $RPI_2 -eq 1 ]]; then
-            echo "Found Raspberry Pi 2"
-        elif [[ $RPI_3 -eq 1 ]]; then
-            echo "Found Raspberry Pi 3"
-        else
-            echo 'Error: CPU information unknown'
-            exit 1
-        fi
-    else
-        echo 'Error: CPU information unknown'
-    fi
-elif [[ $CPU_X64 -eq 1 ]]; then
-    echo "Found x64 CPU"
-else
-    # No support for old 32bit CPUs which are not ARM (to use EFI)
-	echo 'Error: CPU information unsupported'
-	exit 1
-fi
+. ./sysinfo.sh
 
 ################################################################################
 # Basic tools
@@ -129,7 +78,7 @@ PKG_DESKTOP+="accountsservice light-locker "
 # xfce
 PKG_DESKTOP+="exo garcon gtk-xfce-engine tumbler xfce4-mixer xfce4-panel "
 PKG_DESKTOP+="xfce4-power-manager xfce4-session xfce4-settings xfconf xfdesktop "
-PKG_DESKTOP+="xfwm4 "
+PKG_DESKTOP+="xfwm4 xfce4-terminal thunar-volman thunar"
 
 # TODO arc theme + icons
 # TODO git ad dep here?
@@ -139,7 +88,7 @@ PKG_DESKTOP+="gnome-themes-standard gtk-engine-murrine elementary-icon-theme "
 PKG_DESKTOP+="dconf-editor alsa-utils xdg-user-dirs network-manager-applet "
 PKG_DESKTOP+="networkmanager xfce4-notifyd nm-connection-editor file-roller "
 PKG_DESKTOP+="thunar-archive-plugin xfce4-xkb-plugin xfce4-cpugraph-plugin "
-PKG_DESKTOP+="thunar-archive-plugin thunar-media-tags-plugin "
+PKG_DESKTOP+="thunar-media-tags-plugin plank "
 PKG_DESKTOP+="xfce4-cpugraph-plugin xfce4-genmon-plugin xfce4-mpc-plugin "
 PKG_DESKTOP+="xfce4-sensors-plugin xfce4-xkb-plugin xfce4-whiskermenu-plugin "
 PKG_DESKTOP+="xfce4-mixer gstreamer0.10-good-plugins ffmpegthumbnailer "
@@ -163,11 +112,6 @@ PKG_APP+="firefox qtox deja-dup rhythmbox gst-libav vlc thunderbird "
 PKG_APP+="libreoffice-fresh gnome-disk-utility evince gnome-calculator pinta "
 PKG_APP+="irssi pidgin gparted gedit meld mousepad xfburn xfce4-screenshooter "
 PKG_APP+="gpicview gnome-system-monitor uget "
-
-# TODO rhythmbox plugins
-#gst-libav (optional) - Extra media codecs
-#gst-plugins-bad (optional) - Extra media codecs
-#gst-plugins-ugly (optional) - Extra media codecs
 
 # x64 only
 if [[ $CPU_X64 -eq 1 ]]; then
@@ -199,7 +143,7 @@ PKG_DEV+="git avr-gcc avrdude libusb hidapi jdk8-openjdk jre8-openjdk vim "
 PKG_OPT+="filezilla wine keepass bless puddletag openssh "
 
 # Pentration testing
-PKG_HCK+="ettercap-gtk ettercap wireshark-gtk aircrack-ng reaver nmap "
+PKG_HCK+="ettercap-gtk wireshark-gtk aircrack-ng reaver nmap pygtk "
 
 # TODO
 #alsa tools pavucontrol notes/todo vnc avahi nss-mdns virtualbox virtualbox-guest-dkms linux-headers linux-lts-headers
@@ -209,6 +153,19 @@ PKG_HCK+="ettercap-gtk ettercap wireshark-gtk aircrack-ng reaver nmap "
 # Installation
 ################################################################################
 
+# Check for system updates before Configuring new packages to not break anything
+echo "Checking for updates..."
+checkupdates
+if [[ $? -ne 0 ]];then
+    sudo pacman -Syyu
+    if [[ $? -ne 0 ]]; then
+        echo "Error: Installation failed."
+        exit 1
+    fi
+else
+    echo "Already up to date."
+fi
+
 PKG_ALL+="$PKG_BASIC"
 PKG_ALL+="$PKG_XORG"
 PKG_ALL+="$PKG_DESKTOP"
@@ -217,4 +174,5 @@ PKG_ALL+="$PKG_DEV"
 PKG_ALL+="$PKG_OPT"
 PKG_ALL+="$PKG_HCK"
 
+echo "Installing selected packages..."
 sudo pacman -S --needed $PKG_ALL

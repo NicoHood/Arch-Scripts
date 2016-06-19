@@ -1,32 +1,18 @@
 #!/bin/bash
 
-# TODO ask password
-# TODO check root: do not run as root!
+# Check for root user
+if [[ $EUID -eq 0 ]]; then
+  echo "You must NOT be a root user" 2>&1
+  exit 1
+fi
 
-# TODO check if packages are installed/service/file exists and only use sudo if they are not installed.
-# TODO a pkgbuild might be better than a script?
-
-function installPackages {
-    # Pacman for Arch Linux
-    PACKAGES=$@
-    pacman -Q $PACKAGES >/dev/null 1>&2
-    if [[ $? -ne 0 ]]; then
-        # TODO is this echo really required?
-        echo "Installing packages $PACKAGES"
-        sudo pacman -S --needed --noconfirm -q $PACKAGES
-        if [[ $? -ne 0 ]]; then
-            echo "Error: Installation failed."
-            exit 1
-        fi
-    fi
-}
-
+# Get system information
+. ./sysinfo.sh
 
 ################################################################################
 # Settings
 ################################################################################
 
-USERNAME=alarm # TODO
 BUILD_DIR=~/hackallthethings # TODO
 
 # Disable components
@@ -43,105 +29,18 @@ XFCE_TWEAKS=1
 FILE_MANAGER=1
 TERMINAL=1
 
-# Add new user if it does not exist yet
-# TODO
-
-# Switch to this user
-# TODO this does not work
-#su - $USERNAME
-# TODO exit afterwards and reboot
-
-
-################################################################################
-# Get system information
-################################################################################
-
-# Check if running on Arch linux
-# TODO check if this also applies to ALARM
-ARCH=`cat /etc/os-release | grep 'Arch Linux' | wc -l`
-
-if [[ ARCH -eq 0 ]]; then
-    echo "Error: No Arch Linux OS could be detected. Aborting."
-    exit 1
-fi
-
-# Find out which device this script runs on
-CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710' /proc/cpuinfo`
-CPU_ARM7=`uname -m | grep 'armv7l' | wc -l`
-CPU_ARM6=`uname -m | grep 'armv6l' | wc -l`
-CPU_ARM6ARM7=`uname -m | grep 'armv6l\|armv7l' | wc -l`
-CPU_X64=`uname -m | grep 'x86_64' | wc -l`
-
-# Check if running inside vm (none for normal host mode)
-CPU_VM=`systemd-detect-virt | grep 'oracle' | wc -l`
-
-# Check which RPi we are on (in case)
-#TODO does not work -> pi3 recognized as pi3
-RPI_1=`grep -m1 -c BCM2708 /proc/cpuinfo`
-RPI_2=`grep -m1 -c BCM2709 /proc/cpuinfo`
-RPI_3=`grep -m1 -c BCM2710 /proc/cpuinfo`
-
-# Check that we have a known configuration
-if [[ CPU_ARM6ARM7 -eq 1 ]]; then
-    echo "Found ARM CPU"
-    if [[ $CPU_RPI -eq 1 ]]; then
-        if [[ $RPI_1 -eq 1 ]]; then
-            echo "Found Raspberry Pi 1"
-        elif [[ $RPI_2 -eq 1 ]]; then
-            echo "Found Raspberry Pi 2"
-        elif [[ $RPI_3 -eq 1 ]]; then
-            echo "Found Raspberry Pi 3"
-        else
-            echo 'Error: CPU information unknown'
-            exit 1
-        fi
-    else
-        echo 'Error: CPU information unknown'
-    fi
-elif [[ $CPU_X64 -eq 1 ]]; then
-    echo "Found x64 CPU"
-else
-    # No support for old 32bit CPUs which are not ARM (to use EFI)
-	echo 'Error: CPU information unsupported'
-	exit 1
-fi
-
 
 ################################################################################
 # General
 ################################################################################
 
-# Check for system updates before installing new packages to not break anything
-echo "Checking for updates..."
-checkupdates
-if [[ $? -ne 0 ]];then
-    sudo pacman -Syyu
-    if [[ $? -ne 0 ]]; then
-        echo "Error: Installation failed."
-        exit 1
-    fi
-else
-    echo "Already up to date."
-fi
-
-# Install base-devel group if not installed in any case
-pacman -Qg base-devel >/dev/null
-if [[ $? -ne 0 ]]; then
-    sudo pacman -S --needed --noconfirm -q base-devel
-    if [[ $? -ne 0 ]]; then
-        echo "Error: Installation failed."
-        exit 1
-    fi
-fi
-
-# Create build irectory if it does not exist
-mkdir -p $BUILD_DIR
-
 # Add /opt/vc tools to path
-# TODO locally?
+# TODO per user
 if [[ ENV_VARS -eq 1 ]];then
-    echo "Installing environment variables..."
-    if [[ $CPU_RPI -eq 1 ]]; then
+    echo "Configuring environment variables..."
+
+    # Add /opt/vc/bin to $PATH for Raspberry Pi
+    if [[ -e "/opt/vc/bin" ]]; then
         grep "^export PATH=.*:/opt/vc/bin" /etc/bash.bashrc
         if [[ $? -ne 0 ]]; then
             echo "Adding /opt/vc/bin to global path."
@@ -151,54 +50,8 @@ if [[ ENV_VARS -eq 1 ]];then
 fi
 
 
-################################################################################
-# Desktop environment installation
-################################################################################
-
-if [[ XORG -eq 1 ]];then
-    echo "Installing X-Org..."
-
-    # Install X-server
-    installPackages xorg-server mesa
-
-    # Install kernel headers for x64 and dkms
-    if [[ $CPU_X64 -eq 1 ]]; then
-        installPackages linux-lts-headers linux-headers
-    fi
-
-    # Install desktop utils + video drivers for vm
-    if [[ CPU_VM -eq 1 ]]; then
-        installPackages virtualbox-guest-utils virtualbox-guest-dkms
-    # Install video drivers for x64 PC
-    elif [[ $CPU_X64 -eq 1 ]]; then
-        INTEL_CARD=`lspci | grep -e VGA -e 3D | grep -i Intel | wc -l`
-        NVIDIA_CARD=`lspci | grep -e VGA -e 3D | grep -i Nvidia | wc -l`
-        AMD_CARD=`lspci | grep -e VGA -e 3D | grep -i Amd | wc -l`
-        ATI_CARD=`lspci | grep -e VGA -e 3D | grep -i Ati | wc -l`
-        if [[ $INTEL_CARD -eq 1 ]]; then
-            installPackages xf86-video-intel
-        elif [[ $NVIDIA_CARD -eq 1 ]]; then
-            installPackages xf86-video-nouveau
-        elif [[ $ATI_CARD -eq 1 ]]; then
-            installPackages xf86-video-ati
-        elif [[ $AMD_CARD -eq 1 ]]; then
-            installPackages xf86-video-amdgpu
-        else
-            echo "Warning: No graphic card found. Installing fbdev and vesa. You might want to search yours with:"
-            echo "lspci | grep -e VGA -e 3D"
-            echo "pacman -Ss xf86-video"
-            installPackages xf86-video-fbdev xf86-video-vesa
-        fi
-    # TODO raspi drivers
-    fi
-    # TODO? xorg-utils xorg-server-utils
-fi
-
 if [[ LIGHTDM -eq 1 ]];then
     # Install display manager and greeter and enable it
-    echo "Installing lightdm..."
-    installPackages lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings \
-                accountsservice light-locker
     systemctl is-active lightdm.service
     if [[ $? -ne 0 ]]; then
         echo "Enabling lightdm service..."
@@ -216,57 +69,25 @@ if [[ LIGHTDM -eq 1 ]];then
     #echo "FontName=Monospace 11" >> $TERMINAL_CFG
 fi
 
-if [[ XFCE -eq 1 ]];then
-    # xfce4 basic packages (xfce4 without thunar, terminal, xfce4-appfinder and xfwm4-themes)
-    echo "Installing xfce..."
-    installPackages exo garcon gtk-xfce-engine tumbler xfce4-mixer xfce4-panel \
-                xfce4-power-manager xfce4-session xfce4-settings xfconf \
-                xfdesktop xfwm4
-fi
-
 
 ################################################################################
 # Arc theme
 ################################################################################
 
 if [[ ARC_THEME -eq 1 ]];then
-    # Install Arc theme dependencies
-    echo "Installing/updating Arc theme..."
-    installPackages gnome-themes-standard gtk-engine-murrine \
-                    elementary-icon-theme autoconf automake git
-
+    # Install Arc theme
     # Arc theme and icons have to be installed from AUR or from git
     # See the official build instructions for the most up to date installation instructions
-    cd $BUILD_DIR
-    if [[ ! -d "arc-theme" ]]; then
-        # Control will enter here if $DIRECTORY doesn't exist.
-        git clone https://github.com/horst3180/arc-theme --depth 1
-        cd arc-theme
-    else
-        # Check if new data was pulled. If not do not recompile
-        cd arc-theme
-        git pull
-        if [[ $? -eq 0 ]]; then
-            ARC_THEME=0
-        fi
-    fi
 
-    if [[ ARC_THEME -eq 1 ]];then
-        # Build and install
-        ./autogen.sh --prefix=/usr
-        sudo make install
-
-        # Go to `Settings->Appearance`
-        # Go to `Style`
-        # Enable the theme (Arc-Darker)
-        # Go to `Settings->Window Manager`
-        # Go to `Style`
-        # Enable the theme (Arc-Darker)
-        xfconf-query -c xfwm4 -p /general/theme -s "Arc-Darker"
-        xfconf-query -c xsettings -p /Net/ThemeName -s "Arc-Darker"
-    fi
+    # Go to `Settings->Appearance`
+    # Go to `Style`
+    # Enable the theme (Arc-Darker)
+    # Go to `Settings->Window Manager`
+    # Go to `Style`
+    # Enable the theme (Arc-Darker)
+    xfconf-query -c xfwm4 -p /general/theme -s "Arc-Darker"
+    xfconf-query -c xsettings -p /Net/ThemeName -s "Arc-Darker"
 fi
-
 
 ################################################################################
 # Arc icon theme
@@ -275,37 +96,25 @@ fi
 if [[ ARC_ICON_THEME -eq 1 ]];then
     # Arc theme and icons have to be installed from AUR or from git
     # See the official build instructions for the most up to date installation instructions
-    echo "Installing/updating Arc icon theme..."
-    cd $BUILD_DIR
-    if [[ ! -d "arc-icon-theme" ]]; then
-        # Control will enter here if $DIRECTORY doesn't exist.
-        git clone https://github.com/horst3180/arc-icon-theme --depth 1
-        cd arc-icon-theme
-    else
-        # Check if new data was pulled. If not do not recompile
-        cd arc-icon-theme
-        git pull
-        if [[ $? -eq 0 ]]; then
-            ARC_ICON_THEME=0
-        fi
-    fi
+    echo "Configuring/updating Arc icon theme..."
+    cd /tmp
+    git clone https://github.com/horst3180/arc-icon-theme --depth 1
+    cd arc-icon-theme
 
-    if [[ ARC_ICON_THEME -eq 1 ]];then
-        # Before you compile add elementary as fallback icon theme
-        sed -ie "s/Inherits=.*/Inherits=elementary,Adwaita,gnome,hicolor/" Arc/index.theme
+    # Before you compile add elementary as fallback icon theme
+    sed -ie "s/Inherits=.*/Inherits=Moka,elementary,Adwaita,gnome,hicolor/" Arc/index.theme
 
-        # Build and install
-        ./autogen.sh --prefix=/usr
-        sudo make install
+    # Build and install
+    ./autogen.sh --prefix=/usr
+    sudo make install
 
-        # Go to `Settings->Appearance`
-        # Go to `Icons`
-        # Enable the theme (Arc)
-        xfconf-query -c xsettings -p /Net/IconThemeName -s "Arc"
+    # Go to `Settings->Appearance`
+    # Go to `Icons`
+    # Enable the theme (Arc)
+    xfconf-query -c xsettings -p /Net/IconThemeName -s "Arc"
 
-        # Update/generate Arc icon cache:
-        sudo gtk-update-icon-cache /usr/share/icons/Arc/
-    fi
+    # Update/generate Arc icon cache:
+    sudo gtk-update-icon-cache /usr/share/icons/Arc/
 fi
 
 
@@ -320,8 +129,7 @@ if [[ PLANK -eq 1 ]];then
     # Go to `Application Autostart`
     # Add and entry `Plank` with the command `plank`
     # Start `plank`
-    echo "Installing plank..."
-    installPackages plank
+    echo "Configuring plank..."
     dconf write /net/launchpad/plank/docks/dock1/theme "'Transparent'"
     mkdir -p ~/.config/autostart/
     cp /usr/share/applications/plank.desktop ~/.config/autostart/
@@ -337,7 +145,7 @@ if [[ KEYBOARD_SHORTCUTS -eq 1 ]];then
     # Add a new shortcut for `xfce4-screenshooter --fullscreen` for the `Print` key
     # Add a new shortcut for `xfce4-popup-whiskermenu` for the `Super/Windows` key
     # Remove the `Alt+F1`, `Alt+F2` and `Alt+F3` shortcuts
-    echo "Installing keyboard shortcuts..."
+    echo "Configuring keyboard shortcuts..."
     xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/Print -s "xfce4-screenshooter --fullscreen"
     xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/Super_L -s "xfce4-popup-whiskermenu"
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Alt>F1" -r
@@ -359,7 +167,8 @@ if [[ DESKTOP -eq 1 ]];then
     # Go to `Icons`
     # Set `Icon type` as `None`
     # Also disable all desktop menus in `Settings->Desktop->Menus`
-    echo "Installing desktop..."
+    echo "Configuring desktop..."
+
     # Check if wallpaper exists. If not show website link
     if [[ ! -e /usr/share/backgrounds/xfce/glacier.jpg ]]; then
         if [[ ! -e glacier.jpg ]]; then
@@ -381,7 +190,7 @@ fi
 
 if [[ XFCE_TWEAKS -eq 1 ]];then
     # Install several Xfce related tweaks/fixes
-    echo "Installing Xfce tweaks..."
+    echo "Configuring Xfce tweaks..."
 
     # Go to `Settings->Window Manager Tweaks`
     # Go to `Cycling`
@@ -425,8 +234,7 @@ if [[ FILE_MANAGER -eq 1 ]];then
     # Set all `Icon Size` to `Very Small`
     # Go to `Behavior`
     # Enable `Middle Click->Open folder in new tab`
-    echo "Installing file manager..."
-    installPackages thunar thunar-volman
+    echo "Configuring file manager..."
     xfconf-query -c thunar -p /shortcuts-icon-size -s "THUNAR_ICON_SIZE_SMALLEST"
     xfconf-query -c thunar -p /tree-icon-size -s "THUNAR_ICON_SIZE_SMALLEST"
     xfconf-query -c thunar -p /misc-middle-click-in-tab -s true
@@ -447,8 +255,7 @@ if [[ TERMINAL -eq 1 ]];then
     # Set `Cursor color` to the Arc text color (#AAAAAA)
     # Set `Tab activity color` to The Arc close button color (#FF5555)
     # You can also drop the colors from the `Palette`
-    echo "Installing terminal..."
-    installPackages xfce4-terminal
+    echo "Configuring terminal..."
     TERMINAL_CFG=~/.config/xfce4/terminal/terminalrc
     if [[ ! -e "$TERMINAL_CFG" ]]; then
         mkdir -p ~/.config/xfce4/terminal
