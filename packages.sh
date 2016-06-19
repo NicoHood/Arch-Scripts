@@ -1,22 +1,30 @@
 #!/bin/bash
 
 # Check for root user
-if [[ $EUID -eq 0 ]]; then
-  echo "You must NOT be a root user" 2>&1
+if [[ $EUID -ne 0 ]]; then
+  echo "You must be a root user" 2>&1
   exit 1
 fi
 
 # Get system information
+if [[ ! -e "./sysinfo.sh" ]]; then
+    echo "Error: Could not find ./sysinfo.sh script."
+    exit 1
+fi
 . ./sysinfo.sh
 
 ################################################################################
-# Basic tools
+# Basic packages
 ################################################################################
 
-# Basic tools
+# Basic packages
 PKG_BASIC+="wget base base-devel sudo bash-completion lsb-release htop "
 PKG_BASIC+="gnome-keyring unrar cfv bind-tools "
 
+# Install lts kernel + headers for x64 and dkms
+if [[ $CPU_X64 -eq 1 ]]; then
+    PKG_BASIC+="linux-lts linux-lts-headers linux-headers "
+fi
 
 ################################################################################
 # XORG
@@ -25,15 +33,10 @@ PKG_BASIC+="gnome-keyring unrar cfv bind-tools "
 # Install X-server
 PKG_XORG+="xorg-server mesa "
 
-# Install kernel headers for x64 and dkms
-if [[ $CPU_X64 -eq 1 ]]; then
-    # TODO remove (lts) headers?
-    PKG_XORG+="linux-lts-headers linux-headers "
-fi
-
 # Install desktop utils + video drivers for vm
 if [[ CPU_VM -eq 1 ]]; then
     echo "Installing Virtualbox drivers"
+    PKG_XORG+="linux-headers linux-lts-headers "
     PKG_XORG+="virtualbox-guest-utils virtualbox-guest-dkms "
 # Install video drivers for x64 PC
 elif [[ $CPU_X64 -eq 1 ]]; then
@@ -157,7 +160,7 @@ PKG_HCK+="ettercap-gtk wireshark-gtk aircrack-ng reaver nmap pygtk "
 echo "Checking for updates..."
 checkupdates
 if [[ $? -ne 0 ]];then
-    sudo pacman -Syyu
+    pacman -Syyu
     if [[ $? -ne 0 ]]; then
         echo "Error: Installation failed."
         exit 1
@@ -175,4 +178,4 @@ PKG_ALL+="$PKG_OPT"
 PKG_ALL+="$PKG_HCK"
 
 echo "Installing selected packages..."
-sudo pacman -S --needed $PKG_ALL
+pacman -S --needed $PKG_ALL
