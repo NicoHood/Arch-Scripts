@@ -75,10 +75,11 @@ echo -n "$CFG_ROOT_PASSWD" | cryptsetup open --type luks ${CFG_SDX}2 lvm
 pvcreate /dev/mapper/lvm
 vgcreate arch-vg /dev/mapper/lvm
 lvcreate -L 4G arch-vg -n swap
-lvcreate -l 50%VG arch-vg -n backup
+# Reserve 5% for snapshots
+lvcreate -l 5%VG arch-vg -n reserve
 lvcreate -l 100%FREE arch-vg -n root
+lvremove /dev/mapper/arch--vg-reserve
 mkfs.ext4 /dev/mapper/arch--vg-root
-mkfs.ext4 /dev/mapper/arch--vg-backup
 mount /dev/mapper/arch--vg-root /mnt
 mkswap /dev/mapper/arch--vg-swap
 swapon /dev/mapper/arch--vg-swap

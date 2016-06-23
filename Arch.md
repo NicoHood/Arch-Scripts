@@ -163,7 +163,7 @@ xdg-user-dirs-update
 #TODO ssh
 # add user to group users
 nano /etc/ssh/sshd_config
-AllowGroups   users
+AllowGroups    wheel
 systemctl enable sshd.socket
 systemctl start sshd.socket
 

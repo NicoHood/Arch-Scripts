@@ -51,14 +51,6 @@ fi
 
 
 if [[ LIGHTDM -eq 1 ]];then
-    # Install display manager and greeter and enable it
-    systemctl is-active lightdm.service
-    if [[ $? -ne 0 ]]; then
-        echo "Enabling lightdm service..."
-        # TODO ask for enabling
-        sudo systemctl enable lightdm.service
-    fi
-
     # TODO this requires arc theme and background as dependency
     # TODO gui config messes up settings
     LIGHTDM_GREETER_CFG=/etc/lightdm/lightdm-gtk-greeter.conf
