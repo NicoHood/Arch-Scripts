@@ -110,23 +110,6 @@ if [[ ARC_ICON_THEME -eq 1 ]];then
 fi
 
 
-################################################################################
-# Configure plank
-################################################################################
-
-if [[ PLANK -eq 1 ]];then
-    # Install `plank`
-    # Call `plank --preferences` to set the `Transparent` theme
-    # Go to `Settings->Session and Startup`
-    # Go to `Application Autostart`
-    # Add and entry `Plank` with the command `plank`
-    # Start `plank`
-    echo "Configuring plank..."
-    dconf write /net/launchpad/plank/docks/dock1/theme "'Transparent'"
-    mkdir -p ~/.config/autostart/
-    cp /usr/share/applications/plank.desktop ~/.config/autostart/
-fi
-
 
 ################################################################################
 # Keyboard shortcuts
@@ -143,6 +126,7 @@ if [[ KEYBOARD_SHORTCUTS -eq 1 ]];then
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Alt>F1" -r
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Alt>F2" -r
     xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Alt>F3" -r
+    # TODO keyboard layout + change layout option
 fi
 
 

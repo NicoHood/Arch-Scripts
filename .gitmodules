@@ -1,0 +1,6 @@
+[submodule "AUR/atom-editor"]
+	path = AUR/atom-editor
+	url = https://aur.archlinux.org/atom-editor.git
+[submodule "AUR/gtk-theme-arc"]
+	path = AUR/gtk-theme-arc
+	url = https://aur.archlinux.org/gtk-theme-arc.git

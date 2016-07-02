@@ -1,0 +1,54 @@
+# See /boot/overlays/README for all available options
+
+[pi0]
+# USB OTG driver
+#dtoverlay=dwc2
+
+[pi1]
+# Overclocking Turbo
+arm_freq=1000
+core_freq=500
+sdram_freq=500
+over_voltage=6
+temp_limit=70
+
+[pi2]
+
+[pi3]
+
+[all]
+# General display setting
+disable_overscan=1
+hdmi_force_hotplug=1
+disable_splash=1
+
+# A higher color depth only increases the gpu mem by 4mb, also for kodi
+# But the desktop backgrounds and web pages will look way better
+# sudo /opt/vc/bin/vcdbg reloc
+framebuffer_depth=32
+framebuffer_ignore_alpha=1
+
+# Allocate more gpu mem for kodi
+gpu_mem=128
+
+# Load audio
+dtparam=audio=on
+
+# Get the monitor setting via
+# tvservice -n
+# /opt/vc/bin/tvservice -n
+[EDID=ACR-M230HDL]
+# DVI Monitor Mode
+hdmi_drive=1
+
+# Cinch setting
+#sdtv_mode=2
+#sdtv_aspect=3
+#disable_overscan=0
+#overscan_left=10
+#overscan_right=10
+#overscan_top=0
+#overscan_bottom=0
+
+[EDID=SAM-SAMSUNG]
+hdmi_drive=2
