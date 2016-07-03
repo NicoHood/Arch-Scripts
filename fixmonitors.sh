@@ -103,6 +103,7 @@ fi
 
 # Go though all connected monitors and generate xrandr command
 execute="xrandr"
+preexecute="xrandr"
 for display in $connectedOutputs
 do
 	echo "Display $display"
@@ -114,17 +115,19 @@ do
 		if [[ "$display" == *HDMI* ]]
 		then
     		echo "Only fixed HDMI"
-		      # TODO ati graphics card requires first "off", then "force-dvi"
-        	execute=$execute" --output $display --set audio force-dvi"
+		      # Ati graphics card requires first "off", then "force-dvi"
+          preexecute+=" --output $display --set audio off"
+        	execute+=" --output $display --set audio force-dvi"
         	((numberUsedMonitors++))
         fi
 	else
-	    # Select the next display
-		execute=$execute" --output $display"
+	  # Select the next display
+		execute+=" --output $display"
+    preexecute+=" --output $display"
 
 		# Get the left monitor.
 		# Will return an empty string if the monitor itself is also not inside the arguments.
-	    left=$(leftmonitor $display $monitors)
+	  left=$(leftmonitor $display $monitors)
 
 		if [ -z "$left" ]
 		then
@@ -132,22 +135,24 @@ do
 			execute=$execute" --off"
 		else
 			echo "Turned on"
-			execute=$execute" --auto"
+			execute+=" --auto"
 			((numberUsedMonitors++))
 
 			# Make the middle monitor (left preferred on even number) primary
-			if [ "$display" == "${@:($#+1)/2:1}" ]
+      monitorarr=($monitors)
+      read -ra ary <<< "$monitors"
+			if [ "$display" == "${ary[(${#ary[@]}-1)/2]}" ]
 			then
 				echo "Primary"
-			    execute=$execute" --primary"
-			    primaryOutput=$display
+			  execute+=" --primary"
+			  primaryOutput=$display
 			fi
 
 			# Check if there is a display left to it
 			if [ "$left" != "$display" ]
 			then
 				echo "Right of $left"
-			    execute=$execute" --right-of $left"
+			    execute+=" --right-of $left"
 
 			    # Abort if the left monitor is invalid
 				if [[ "$connectedOutputs" != *$left* ]]
@@ -161,7 +166,9 @@ do
 			if [[ "$display" == *HDMI* ]]
 			then
 				echo "Fixed HDMI"
-			    execute=$execute" --set audio force-dvi"
+        # Ati graphics card requires first "off", then "force-dvi"
+        preexecute+=" --set audio off"
+			  execute+=" --set audio force-dvi"
 			fi
 		fi
 	fi
@@ -177,8 +184,11 @@ fi
 # Only execute command if at least one monitor is on
 if [ $numberUsedMonitors -gt 0 ]
 then
-	echo "Executing command:"
+	echo "Executing commands:"
+  echo "$preexecute"
 	echo "$execute"
+  $preexecute
+  sleep 1
 	$execute
 else
 	echo "Error: No valid monitor selected."
@@ -192,4 +202,6 @@ then
 	echo "Restarting plank..."
 	sleep 3
 	killall plank
+  sleep 1
+  plank & 1>/dev/null 2>/dev/null
 fi
