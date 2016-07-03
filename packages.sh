@@ -69,6 +69,12 @@ elif [[ $CPU_X64 -eq 1 ]]; then
 
     # Gstreamer hardware acceleration
     PKG_XORG+="gstreamer-vaapi "
+
+    # Laptop touchpad drivers
+    # libinput will replace synaptics
+    PKG_XORG+="xf86-input-libinput "
+    #PKG_XORG+="xf86-input-synaptics "
+
 # Install raspi video drivers
 elif [[ $CPU_RPI -eq 1 ]]; then
     PKG_XORG+="xf86-video-fbturbo-git "
