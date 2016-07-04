@@ -114,7 +114,7 @@ do
 		if [[ "$display" == *HDMI* ]]
 		then
     		echo "Only fixed HDMI"
-		# TODO ati graphics card requires "off" instead of "force-dvi"
+		      # TODO ati graphics card requires first "off", then "force-dvi"
         	execute=$execute" --output $display --set audio force-dvi"
         	((numberUsedMonitors++))
         fi

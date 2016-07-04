@@ -19,7 +19,7 @@ fi
 
 # Basic packages
 PKG_BASIC+="wget base base-devel sudo bash-completion lsb-release htop "
-PKG_BASIC+="gnome-keyring unrar cfv bind-tools "
+PKG_BASIC+="gnome-keyring unrar cfv bind-tools dosfstools "
 
 # Install lts kernel + headers for x64 and dkms
 if [[ $CPU_X64 -eq 1 ]]; then
@@ -85,9 +85,12 @@ PKG_DESKTOP+="lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings "
 PKG_DESKTOP+="accountsservice light-locker "
 
 # xfce
-PKG_DESKTOP+="exo garcon gtk-xfce-engine tumbler xfce4-mixer xfce4-panel "
+PKG_DESKTOP+="exo garcon gtk-xfce-engine tumbler xfce4-panel "
 PKG_DESKTOP+="xfce4-power-manager xfce4-session xfce4-settings xfconf xfdesktop "
 PKG_DESKTOP+="xfwm4 xfce4-terminal thunar-volman thunar "
+
+# Sound
+PKG_DESKTOP+="xfce4-mixer gstreamer0.10-good-plugins pulseaudio paprefs pavucontrol "
 
 # TODO arc theme + icons
 # TODO git ad dep here?
@@ -98,9 +101,9 @@ PKG_DESKTOP+="dconf-editor alsa-utils xdg-user-dirs network-manager-applet "
 PKG_DESKTOP+="networkmanager xfce4-notifyd nm-connection-editor file-roller "
 PKG_DESKTOP+="thunar-archive-plugin xfce4-xkb-plugin xfce4-cpugraph-plugin "
 PKG_DESKTOP+="thunar-media-tags-plugin plank "
-PKG_DESKTOP+="xfce4-cpugraph-plugin xfce4-genmon-plugin xfce4-mpc-plugin "
+PKG_DESKTOP+="xfce4-cpugraph-plugin xfce4-genmon-plugin "
 PKG_DESKTOP+="xfce4-sensors-plugin xfce4-xkb-plugin xfce4-whiskermenu-plugin "
-PKG_DESKTOP+="xfce4-mixer gstreamer0.10-good-plugins ffmpegthumbnailer "
+PKG_DESKTOP+="ffmpegthumbnailer "
 PKG_DESKTOP+="freetype2 libgsf libopenraw poppler-glib xfce4-screenshooter "
 
 # x64 only tools
@@ -117,17 +120,20 @@ PKG_DESKTOP_OPT+="alacarte numix-themes "
 ################################################################################
 
 # Applications
-PKG_APP+="firefox qtox deja-dup rhythmbox gst-libav vlc thunderbird "
+PKG_APP+="firefox deja-dup rhythmbox gst-libav vlc thunderbird gnupg "
 PKG_APP+="libreoffice-fresh gnome-disk-utility evince gnome-calculator pinta "
-PKG_APP+="irssi pidgin gparted gedit meld mousepad xfburn xfce4-screenshooter "
+PKG_APP+="gparted gedit meld mousepad xfburn xfce4-screenshooter "
 PKG_APP+="gpicview gnome-system-monitor uget "
+
+# Chat
+PKG_APP+="irssi pidgin aspell-en qtox "
 
 # x64 only
 if [[ $CPU_X64 -eq 1 ]]; then
     PKG_APP+="kodi handbrake dolphin-emu "
 
     # Install virtual box
-    PKG_APP+="virtualbox virtualbox-host-dkms virtualbox-guest-iso "    
+    PKG_APP+="virtualbox virtualbox-host-dkms virtualbox-guest-iso "
 fi
 
 # Non ARM6 only (ARM7, x64)
@@ -149,10 +155,10 @@ PKG_APP_ALT+="brasero gedit gnome-screenshot ristretto xfce4-taskmanager "
 ################################################################################
 
 # Development
-PKG_DEV+="git avr-gcc avrdude libusb hidapi jdk8-openjdk jre8-openjdk vim "
+PKG_DEV+="git avr-gcc avrdude avr-libc libusb hidapi jdk8-openjdk jre8-openjdk vim namcap "
 
 # Optional
-PKG_OPT+="filezilla wine keepass bless puddletag openssh "
+PKG_OPT+="filezilla wine keepass bless puddletag openssh ethtool "
 
 # Pentration testing
 PKG_HCK+="ettercap-gtk wireshark-gtk aircrack-ng reaver nmap pygtk "
@@ -166,7 +172,8 @@ PKG_HCK+="ettercap-gtk wireshark-gtk aircrack-ng reaver nmap pygtk "
 ################################################################################
 
 # Enable multilib support (for wine)
-sed -i '/.multilib./{ s/^#//; n; s/^#//; }' /etc/pacman.conf
+# TODO this uncomments a wrong line
+#sed -i '/.multilib./{ s/^#//; n; s/^#//; }' /etc/pacman.conf
 
 # Check for system updates before Configuring new packages to not break anything
 echo "Checking for updates..."
@@ -179,7 +186,7 @@ fi
 PKG_ALL+="$PKG_BASIC"
 PKG_ALL+="$PKG_XORG"
 PKG_ALL+="$PKG_DESKTOP"
-#PKG_ALL+="&PKG_DESKTOP_OPT"
+#PKG_ALL+="$PKG_DESKTOP_OPT"
 PKG_ALL+="$PKG_APP"
 PKG_ALL+="$PKG_DEV"
 PKG_ALL+="$PKG_OPT"
@@ -197,3 +204,5 @@ response=${response,,}
 if [[ $response =~ ^(yes|y)$ ]]; then
     systemctl enable lightdm.service
 fi
+
+# TODO add user to groups: wheel uucp audio users vboxusers arch

@@ -60,7 +60,7 @@ timedatectl set-ntp true
 #t 2 8e
 #w
 echo "Formating disk..."
-echo "o\nn\np\n1\n\n+512M\na\nn\np\n2\n\n\nt\n2\n8e\np\nw" | fdisk $CFG_SDX
+echo -e "o\nn\np\n1\n\n+512M\na\nn\np\n2\n\n\nt\n2\n8e\np\nw" | fdisk $CFG_SDX
 echo ""
 
 # Stop on errors
@@ -78,7 +78,7 @@ lvcreate -L 4G arch-vg -n swap
 # Reserve 5% for snapshots
 lvcreate -l 5%VG arch-vg -n reserve
 lvcreate -l 100%FREE arch-vg -n root
-lvremove /dev/mapper/arch--vg-reserve
+lvremove -f /dev/mapper/arch--vg-reserve
 mkfs.ext4 /dev/mapper/arch--vg-root
 mount /dev/mapper/arch--vg-root /mnt
 mkswap /dev/mapper/arch--vg-swap
