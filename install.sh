@@ -102,7 +102,8 @@ mount --bind /run /mnt/hostrun
 # https://wiki.archlinux.org/index.php/beginners'_guide#Install_the_base_packages
 pacstrap /mnt base base-devel sudo bash-completion
 genfstab -U /mnt > /mnt/etc/fstab
-UUID=`blkid ${CFG_SDX}2 -o value | head -n 1`
+UUID1=`blkid ${CFG_SDX}1 -o value | head -n 1`
+UUID2=`blkid ${CFG_SDX}2 -o value | head -n 1`
 
 arch-chroot /mnt /bin/bash <<EOF
 
@@ -129,7 +130,7 @@ mkinitcpio -p linux
 pacman -S --needed --noconfirm -q grub os-prober intel-ucode
 
 # Note uuid and add it to grub config efibootmgr
-sed -i "s#^GRUB_CMDLINE_LINUX=\"#\0cryptdevice=UUID=${UUID}:lvm root=/dev/mapper/arch--vg-root#g" /etc/default/grub
+sed -i "s#^GRUB_CMDLINE_LINUX=\"#\0cryptdevice=UUID=${UUID2}:lvm root=/dev/mapper/arch--vg-root#g" /etc/default/grub
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
 
 mkdir /run/lvm
@@ -139,7 +140,7 @@ grub-install --target=i386-pc ${CFG_SDX}
 
 # Configuring fstab and crypttab
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_fstab_and_crypttab_2
-echo "cryptboot ${CFG_SDX}1 none luks" >> /etc/crypttab
+echo "cryptboot UUID=${UUID1} none luks" >> /etc/crypttab
 
 # Install sudo, if missing and add the wheel group to the sudoers
 pacman -S --needed --noconfirm -q sudo
