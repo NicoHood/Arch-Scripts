@@ -1,3 +1,0 @@
-post_install() {
-  echo "Don't forget to add yourself to the uucp group: sudo usermod -a -G uucp <user>"
-}
