@@ -4,3 +4,6 @@
 [submodule "AUR/gtk-theme-arc"]
 	path = AUR/gtk-theme-arc
 	url = https://aur.archlinux.org/gtk-theme-arc.git
+[submodule "AUR/arduino"]
+	path = AUR/arduino
+	url = git+ssh://aur@aur.archlinux.org/arduino.git
