@@ -48,7 +48,9 @@ elif [[ $CPU_X64 -eq 1 ]]; then
     ATI_CARD=`lspci | grep -e VGA -e 3D | grep -i Ati | wc -l`
     if [[ $INTEL_CARD -eq 1 ]]; then
         echo "Installing Intel drivers"
-        PKG_XORG+="xf86-video-intel mesa-libgl libva-intel-driver libvdpau-va-gl "
+        # A better intel driver (xf86-video-intel) is integrated in the kernel:
+        # https://www.reddit.com/r/archlinux/comments/4cojj9/it_is_probably_time_to_ditch_xf86videointel/
+        PKG_XORG+="mesa-libgl libva-intel-driver libvdpau-va-gl "
     elif [[ $NVIDIA_CARD -eq 1 ]]; then
         echo "Installing Nvidia drivers"
         PKG_XORG+="xf86-video-nouveau mesa-libgl mesa-vdpau "
@@ -91,45 +93,51 @@ PKG_DESKTOP+="lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings "
 PKG_DESKTOP+="accountsservice light-locker "
 
 # xfce
-PKG_DESKTOP+="exo garcon gtk-xfce-engine tumbler xfce4-panel "
+PKG_DESKTOP+="exo garcon gtk-xfce-engine xfce4-panel "
 PKG_DESKTOP+="xfce4-power-manager xfce4-session xfce4-settings xfconf xfdesktop "
-PKG_DESKTOP+="xfwm4 xfce4-terminal thunar-volman thunar "
+PKG_DESKTOP+="xfwm4 xfce4-terminal "
+
+# File manager
+PKG_DESKTOP+="thunar thunar-volman thunar-archive-plugin thunar-media-tags-plugin "
+PKG_DESKTOP+="catfish mlocate gvfs udisks udisks2 tumbler "
 
 # Sound
 PKG_DESKTOP+="xfce4-mixer gstreamer0.10-good-plugins pulseaudio paprefs pavucontrol "
 
-# TODO arc theme + icons
-# TODO git ad dep here?
-PKG_DESKTOP+="gnome-themes-standard gtk-engine-murrine elementary-icon-theme "
+# (Fallback) Themes
+PKG_DESKTOP+="gnome-themes-standard gtk-engine-murrine elementary-icon-theme numix-themes "
+
+# Network
+PKG_DESKTOP+="networkmanager network-manager-applet dnsmasq "
 
 # Install other DE related tools/plugins (also see xfce4-goodies)
-PKG_DESKTOP+="dconf-editor alsa-utils xdg-user-dirs network-manager-applet "
-PKG_DESKTOP+="networkmanager xfce4-notifyd nm-connection-editor file-roller "
-PKG_DESKTOP+="thunar-archive-plugin xfce4-xkb-plugin xfce4-cpugraph-plugin "
-PKG_DESKTOP+="thunar-media-tags-plugin plank "
+PKG_DESKTOP+="dconf-editor alsa-utils xdg-user-dirs "
+PKG_DESKTOP+="xfce4-notifyd nm-connection-editor file-roller "
+PKG_DESKTOP+="xfce4-xkb-plugin xfce4-cpugraph-plugin "
+PKG_DESKTOP+="plank "
 PKG_DESKTOP+="xfce4-cpugraph-plugin xfce4-genmon-plugin "
-PKG_DESKTOP+="xfce4-sensors-plugin xfce4-xkb-plugin xfce4-whiskermenu-plugin "
+PKG_DESKTOP+="xfce4-sensors-plugin xfce4-xkb-plugin xfce4-whiskermenu-plugin alacarte "
 PKG_DESKTOP+="ffmpegthumbnailer "
 PKG_DESKTOP+="freetype2 libgsf libopenraw poppler-glib xfce4-screenshooter "
 
-# x64 only tools
-if [[ $CPU_X64 -eq 1 ]]; then
-    PKG_DESKTOP+="xfce4-battery-plugin "
-fi
-
-# Optional DE packages
-PKG_DESKTOP_OPT+="alacarte numix-themes "
-
-
 ################################################################################
 # Applications
 ################################################################################
 
 # Applications
-PKG_APP+="firefox deja-dup rhythmbox gst-libav vlc thunderbird gnupg "
+PKG_APP+="firefox deja-dup thunderbird gnupg "
 PKG_APP+="libreoffice-fresh gnome-disk-utility evince gnome-calculator pinta "
 PKG_APP+="gparted gedit meld mousepad xfburn xfce4-screenshooter "
-PKG_APP+="gpicview gnome-system-monitor uget "
+PKG_APP+="gpicview gnome-system-monitor baobab "
+
+# Editor
+PKG_APP+="xfce4-notes-plugin "
+
+# Download
+PKG_APP+="uget aria2 "
+
+# Media
+PKG_APP+="udisks rhythmbox gst-libav vlc "
 
 # Chat
 PKG_APP+="irssi pidgin aspell-en qtox "
@@ -149,7 +157,7 @@ fi
 
 # Raspberry Pi only
 if [[ $CPU_RPI -eq 1 ]]; then
-    PKG_APP+="kodi-rbp kodi-rbp-eventclients rng-tools wiringpi "
+    PKG_APP+="kodi-rbp kodi-rbp-eventclients rng-tools wiringpi fake-hwclock"
 fi
 
 # Application alternatives
@@ -161,17 +169,13 @@ PKG_APP_ALT+="brasero gedit gnome-screenshot ristretto xfce4-taskmanager "
 ################################################################################
 
 # Development
-PKG_DEV+="git avr-gcc avrdude avr-libc libusb hidapi jdk8-openjdk jre8-openjdk vim namcap "
+PKG_DEV+="git avr-gcc avrdude avr-libc libusb hidapi jdk8-openjdk jre8-openjdk vim namcap subversion bzr btrfs-progs "
 
 # Optional
 PKG_OPT+="filezilla wine keepass bless puddletag openssh ethtool "
 
 # Pentration testing
 PKG_HCK+="ettercap-gtk wireshark-gtk aircrack-ng reaver nmap pygtk "
-
-# TODO
-#alsa tools pavucontrol notes/todo vnc avahi nss-mdns virtualbox virtualbox-guest-dkms linux-headers linux-lts-headers
-
 
 ################################################################################
 # Installation
@@ -192,7 +196,6 @@ fi
 PKG_ALL+="$PKG_BASIC"
 PKG_ALL+="$PKG_XORG"
 PKG_ALL+="$PKG_DESKTOP"
-#PKG_ALL+="$PKG_DESKTOP_OPT"
 PKG_ALL+="$PKG_APP"
 PKG_ALL+="$PKG_DEV"
 PKG_ALL+="$PKG_OPT"
@@ -201,8 +204,19 @@ PKG_ALL+="$PKG_HCK"
 echo "Installing selected packages..."
 pacman -S --needed $PKG_ALL
 
-# Regenerate grub for lts kernel
-grub-mkconfig -o /boot/grub/grub.cfg
+# Raspberry Pi only
+if [[ $CPU_RPI -eq 1 ]]; then
+    # Install config.txt
+    cp /boot/config.txt /boot/config.txt.bak
+    cp Raspberry/config.txt /boot/config.txt
+fi
+
+# x64 only
+if [[ $CPU_X64 -eq 1 ]]; then
+  # Regenerate grub for lts kernel
+  mkinitcpio -P
+  grub-mkconfig -o /boot/grub/grub.cfg
+fi
 
 # Ask for lightdm startup config
 read -r -p "Do you want to enable lightdm by default? [y/N] " response
@@ -210,5 +224,3 @@ response=${response,,}
 if [[ $response =~ ^(yes|y)$ ]]; then
     systemctl enable lightdm.service
 fi
-
-# TODO add user to groups: wheel uucp audio users vboxusers arch

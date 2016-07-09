@@ -6,13 +6,13 @@
 
 pkgname=arduino
 pkgver=1.6.9
-pkgrel=1
+pkgrel=2
 pkgdesc="Arduino prototyping platform SDK"
 arch=('i686' 'x86_64' 'armv6h' 'armv7h')
 url="https://arduino.cc/en/Main/Software"
 options=(!strip staticlibs)
 license=('GPL' 'LGPL')
-depends=('gtk2' 'desktop-file-utils' 'shared-mime-info')
+depends=('gtk2' 'desktop-file-utils' 'shared-mime-info' 'avrdude')
 install="arduino.install"
 source_i686=("https://downloads.arduino.cc/arduino-${pkgver}-linux32.tar.xz")
 source_x86_64=("https://downloads.arduino.cc/arduino-${pkgver}-linux64.tar.xz")
@@ -35,6 +35,10 @@ package() {
   # Create symlinks
   ln -s /usr/share/arduino/arduino "${pkgdir}/usr/bin/arduino"
   ln -s /usr/share/arduino/reference "${pkgdir}/usr/share/doc/arduino"
+
+  # fix avrdude (see https://github.com/arduino/Arduino/issues/5094)
+  rm -f "${pkgdir}/usr/share/arduino/hardware/tools/avr/bin/avrdude"{,_bin}
+  ln -s /usr/bin/avrdude "${pkgdir}/usr/share/arduino/hardware/tools/avr/bin/avrdude"
 
   # Install desktop icons (keep a symlink for the arduino binary)
   cp -a lib/icons/* "${pkgdir}/usr/share/icons/hicolor"

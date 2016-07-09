@@ -185,9 +185,9 @@ fi
 if [ $numberUsedMonitors -gt 0 ]
 then
 	echo "Executing commands:"
-  echo "$preexecute"
+#  echo "$preexecute"
 	echo "$execute"
-  $preexecute
+#  $preexecute
   sleep 1
 	$execute
 else

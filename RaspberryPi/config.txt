@@ -31,8 +31,13 @@ framebuffer_ignore_alpha=1
 # Allocate more gpu mem for kodi
 gpu_mem=128
 
-# Load audio
+# Enable audio (loads snd_bcm2835)
 dtparam=audio=on
+
+# Uncomment some or all of these to enable the optional hardware interfaces
+#dtparam=i2c_arm=on
+#dtparam=i2s=on
+dtparam=spi=on
 
 # Get the monitor setting via
 # tvservice -n

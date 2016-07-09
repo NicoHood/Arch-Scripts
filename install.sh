@@ -9,8 +9,8 @@ fi
 set -x
 CFG_KEYBOARD=uk
 CFG_SDX=/dev/sda
-CFG_BOOT_PASSWD=toor
-CFG_ROOT_PASSWD=toor
+CFG_BOOT_PASSWD=boot
+CFG_ROOT_PASSWD=root
 CFG_TIMEZONE=Europe/Berlin
 CFG_HOSTNAME=arch
 CFG_USERNAME=Arch
@@ -71,7 +71,7 @@ set -e
 # Create luks
 echo "Creating root luks + lvm partitions..."
 echo -n "$CFG_ROOT_PASSWD" | cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 --use-random ${CFG_SDX}2
-echo -n "$CFG_ROOT_PASSWD" | cryptsetup open --type luks ${CFG_SDX}2 lvm
+echo -n "$CFG_ROOT_PASSWD" | cryptsetup luksOpen ${CFG_SDX}2 lvm
 pvcreate /dev/mapper/lvm
 vgcreate arch-vg /dev/mapper/lvm
 lvcreate -L 4G arch-vg -n swap
@@ -119,18 +119,17 @@ echo 'KEYMAP=uk' > /etc/vconsole.conf
 ln -s /usr/share/zoneinfo/$CFG_TIMEZONE /etc/localtime
 hwclock --systohc --utc
 echo arch > /etc/hostname
-#TODO Add the same hostname to /etc/hosts
 
 # Configuring mkinitcpio
 # https://wiki.archlinux.org/index.php/Dm-crypt/Encrypting_an_entire_system#Configuring_mkinitcpio_5
 sed -i 's/^HOOKS=".*block/\0 keymap encrypt lvm2/g' /etc/mkinitcpio.conf
-mkinitcpio -p linux
+mkinitcpio -P
 
 # Install grub
 pacman -S --needed --noconfirm -q grub os-prober intel-ucode
 
 # Note uuid and add it to grub config efibootmgr
-sed -i "s#^GRUB_CMDLINE_LINUX=\"#\0cryptdevice=UUID=${UUID2}:lvm root=/dev/mapper/arch--vg-root#g" /etc/default/grub
+sed -i "s#^GRUB_CMDLINE_LINUX=\"#\0cryptdevice=UUID=${UUID2}:lvm#g" /etc/default/grub
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
 
 mkdir /run/lvm
@@ -163,6 +162,29 @@ read
 umount /mnt -R
 reboot
 
+# Changes
+mkdir /mnt/boot
+mkdir /mnt/root
+crypsetup luksOpen /dev/sda1 boot
+crypsetup luksOpen /dev/sda2 root
+mount /dev/mapper/arch--vg-root /mnt/root
+mount /dev/mapper/boot /mnt/boot
+cp -a /mnt/boot /mnt/root
+mkdir /mnt/root/hostrun
+mount --bind /run /mnt/root/hostrun
+arch-chroot /mnt/root
+
+nano /etc/crypttab
+nano /etc/fstab
+mkdir /run/lvm
+mount --bind /hostrun/lvm /run/lvm
+grub-install --target=i386-pc /dev/sda
+mkinitcpio -P
+grub-mkconfig -o /boot/grub/grub.cfg
+exit
+
+reboot
+
 # You have to type the password twice when booting.
 # Do NOT add a 2nd keyfile to the initramfs.
 # Otherwise any user can dump the initramfs and its key. This is a security risk.
@@ -171,15 +193,4 @@ reboot
 # Then once the system is booted run `mkinitcpio -p linux`.
 # Change the default passwords after reboot!
 # Make sure to use `sudo` on the new system for administrative commands.
-
 sudo systemctl start dhcpcd
-sudo pacman -Syyu
-
-# TODO lts kernel? -> initramfs
-# TODO secure grub with a password
-
-# Arch installation (encrypted efi)
-#https://gist.githubusercontent.com/wuputah/4982514/raw/017cdeef4cc8ef14401092e1b4db3250e6bac0b1/archlinux-install.sh
-
-
-# TODO use reflector to rate the mirrorlist
