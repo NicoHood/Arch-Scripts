@@ -47,6 +47,11 @@ GRUB_DEFAULT=saved
 GRUB_SAVEDEFAULT=true
 ```
 
+### Lock Root
+```bash
+sudo passwd -l root
+```
+
 ### Multilib
 * Required for wine
 * https://wiki.archlinux.org/index.php/multilib
@@ -67,6 +72,7 @@ To make the DE look better I installed the following (main) packages:
 * [Arc Icon Theme](https://github.com/horst3180/arc-icon-theme)
 * [xfce4-whiskermenu-plugin](http://goodies.xfce.org/projects/panel-plugins/xfce4-whiskermenu-plugin)
 * [plank](https://www.archlinux.org/packages/community/x86_64/plank/)
+* [compton](http://duncanlock.net/blog/2013/06/07/how-to-switch-to-compton-for-beautiful-tear-free-compositing-in-xfce/)
 * [elementary-icon-theme](https://www.archlinux.org/packages/community/any/elementary-icon-theme/)
 * [glacier wallpaper](https://pixabay.com/en/glacier-mountain-snow-hillside-869593/)
 
@@ -191,8 +197,7 @@ cp /usr/share/applications/plank.desktop ~/.config/autostart/
 * Change the shortcut for the `light-locker-command -l` for the `Ctrl+Alt+L` key
 * Remove the `Alt+F1`, `Alt+F2` and `Alt+F3` shortcuts
 * Go to `Layout`
-* Add your desired keyboard layouts
-* Set `Change layout option` to `Alt+Space`
+* Make sure to `Use system defaults` and set the X11 keyboard config properly
 
 ```bash
 xfconf-query -c xfce4-keyboard-shortcuts -p /commands/custom/Print -s "xfce4-screenshooter --fullscreen"
@@ -222,6 +227,7 @@ sudo systemctl enable NetworkManager
 * Go to `Compositor`
 * Disable `Show shadows under dock windows` to get rid of the sticky horizontal line
 * Enable `Synchronize drawing to the vertical blank`
+* Or disable compositing and use [compton](http://duncanlock.net/blog/2013/06/07/how-to-switch-to-compton-for-beautiful-tear-free-compositing-in-xfce/) instead.
 
 * Set the window button layout to the left in `Settings->Window Manager->Style` under `Button layout`
 
@@ -304,12 +310,21 @@ sudo systemctl restart NetworkManager.service
 * Install `udisks` to automount normal USB Drives
 * Add a [keyfile to the luks header](https://wiki.archlinux.org/index.php/Dm-crypt/Device_encryption#Keyfiles)
 * `chmod` the USB drives root partition so that everyone (`kodi`) can read `755` the USB drive
-* TODO add a udev rule
-https://possiblelossofprecision.net/?p=300
-http://tech.cbjck.de/2014/03/27/luks-automount/
+* Add an udev rule:
+
+```rules
+# udevadm info -q all -n /dev/sdxY | grep ID_SERIAL
+# sudo nano /etc/udev/rules.d/85-Seagate2TB-1.rules
+# sudo udevadm test /sys/block/sda/sda1
+# sudo udevadm control --reload-rules
+# ls /dev/mapper
+ACTION=="add", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", ENV{ID_SERIAL}=="ST2000DM001-9YN164_W1E0JWNZ", \
+RUN+="/usr/bin/cryptsetup --key-file /root/Seagate2TB-1.key luksOpen $env{DEVNAME} Seagate2TB-1"
+```
+
 http://michael.stapelberg.de/Artikel/automount_cryptsetup_udev
-http://www.oxygenimpaired.com/debian-lenny-luks-encrypted-root-hidden-usb-keyfile
-https://bbs.archlinux.org/viewtopic.php?id=189549
+https://wiki.archlinux.de/title/Udev
+http://tech.cbjck.de/2014/03/27/luks-automount/
 
 #### SSH
 ```
@@ -344,6 +359,9 @@ sudo sed -i '/export SAL_USE_VCLPLUGIN=gtk$/s/^#//g' /etc/profile.d/libreoffice-
 git config --global user.email "$USER@users.noreply.github.com"
 git config --global user.name "$USER"
 ```
+
+#### Atom
+* [Tabs to Spaces](https://atom.io/packages/tabs-to-spaces)
 
 #### Firefox
 #### Cache in Ram

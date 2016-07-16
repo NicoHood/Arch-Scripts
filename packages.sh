@@ -50,6 +50,7 @@ elif [[ $CPU_X64 -eq 1 ]]; then
         echo "Installing Intel drivers"
         # A better intel driver (xf86-video-intel) is integrated in the kernel:
         # https://www.reddit.com/r/archlinux/comments/4cojj9/it_is_probably_time_to_ditch_xf86videointel/
+        # Make sure to use compton as X11 compositor to avoid vsync problems.
         PKG_XORG+="mesa-libgl libva-intel-driver libvdpau-va-gl "
     elif [[ $NVIDIA_CARD -eq 1 ]]; then
         echo "Installing Nvidia drivers"
@@ -95,7 +96,7 @@ PKG_DESKTOP+="accountsservice light-locker "
 # xfce
 PKG_DESKTOP+="exo garcon gtk-xfce-engine xfce4-panel "
 PKG_DESKTOP+="xfce4-power-manager xfce4-session xfce4-settings xfconf xfdesktop "
-PKG_DESKTOP+="xfwm4 xfce4-terminal "
+PKG_DESKTOP+="xfwm4 xfce4-terminal compton "
 
 # File manager
 PKG_DESKTOP+="thunar thunar-volman thunar-archive-plugin thunar-media-tags-plugin "

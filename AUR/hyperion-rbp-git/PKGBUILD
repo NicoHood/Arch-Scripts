@@ -1,0 +1,43 @@
+# Maintainer: NicoHood <aur {at} nicohood {dot} de>
+
+pkgname=hyperion-rbp-git
+pkgver=r680.c8a2fe8
+pkgrel=1
+pkgdesc="An opensource 'AmbiLight' implementation"
+arch=('armv6h' 'armv7h')
+url="https://github.com/hyperion-project/hyperion.ng"
+license=('MIT')
+depends=('libusb' 'python' 'icu')
+optdepends=('xorg-server: X11 grabbing')
+makedepends=('git' 'cmake' 'qt5-base' 'protobuf')
+install="hyperion-rbp.install"
+provides=('hyperion')
+conflicts=('hyperion' 'hyperion-git' 'hyperion-rbp' 'hyperion-rbp-bin')
+backup=('etc/hyperion.config.json')
+source=("${pkgname}::git+https://github.com/hyperion-project/hyperion#branch=Beta")
+sha256sums=('SKIP')
+
+pkgver() {
+	cd "${srcdir}/${pkgname%-git}"
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd "${srcdir}/${pkgname%-git}"
+	git submodule init
+	git submodule update
+	mkdir -p build
+	cd build
+	cmake -DCMAKE_INSTALL_PREFIX="${pkgdir}/usr" -DPLATFORM=rpi-pwm -DCMAKE_BUILD_TYPE=Release \
+				-DENABLE_QT5=ON-DENABLE_QT5=ON -DUSE_SYSTEM_PROTO_LIBS=ON ..
+	make -j $(nproc)
+}
+
+package() {
+	cd "${srcdir}/${pkgname%-git}/build"
+	make install
+
+	install -Dm 644 "${srcdir}/${pkgname%-git}/config/hyperion.config.json.example" "${pkgdir}/etc/hyperion/hyperion.config.json"
+	install -Dm 644 "${srcdir}/${pkgname%-git}/bin/service/hyperion.systemd.sh" "${pkgdir}/usr/lib/systemd/system/hyperiond.service"
+	rm -rf "${pkgdir}/usr/share/hyperion/service"
+}

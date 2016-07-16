@@ -113,8 +113,14 @@ set -x
 
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen
-echo 'LANG=en_US.UTF-8' > /etc/locale.conf
-echo 'KEYMAP=uk' > /etc/vconsole.conf
+
+# TODO test in chroot
+#echo 'LANG=en_US.UTF-8' > /etc/locale.conf
+#echo 'KEYMAP=uk' > /etc/vconsole.conf
+localectl set-locale LANG=en_US.UTF-8
+localectl set-keymap uk
+localectl set-x11-keymap gb,us,de pc105 ,, grp:alt_shift_toggle
+
 #tzselect
 ln -s /usr/share/zoneinfo/$CFG_TIMEZONE /etc/localtime
 hwclock --systohc --utc
