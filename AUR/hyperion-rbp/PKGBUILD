@@ -1,6 +1,7 @@
 # Maintainer: NicoHood <aur {at} nicohood {dot} de>
 
 pkgname=hyperion-rbp
+_pkgname=hyperion
 pkgver=1.03.2
 pkgrel=1
 pkgdesc="An opensource 'AmbiLight' implementation"
@@ -14,11 +15,11 @@ install="hyperion-rbp.install"
 provides=('hyperion')
 conflicts=('hyperion' 'hyperion-git' 'hyperion-rbp-git' 'hyperion-rbp-bin' 'hyperion-ng-rbp' 'hyperion-ng')
 backup=('etc/hyperion.config.json')
-source=("https://github.com/tvdzwan/${pkgname}/archive/${pkgver}.tar.gz")
+source=("https://github.com/tvdzwan/${_pkgname}/archive/${pkgver}.tar.gz")
 sha512sums=('7406f5bdf323d2799fb375557603fefd1f077cda287b5aa9ff10251b22d8dd07590458515b0e01ef97fba80885aab1aa72bd8b5d26873ad8ebcc1ba53d6776ec')
 
 build() {
-	cd "${srcdir}/${pkgname}"
+	cd "${srcdir}/${_pkgname}"
 	git submodule init
 	git submodule update
 	mkdir -p build
@@ -29,10 +30,10 @@ build() {
 }
 
 package() {
-	cd "${srcdir}/${pkgname}/build"
+	cd "${srcdir}/${_pkgname}/build"
 	make install
 
-	install -Dm 644 "${srcdir}/${pkgname%-git}/config/hyperion.config.json.example" "${pkgdir}/etc/hyperion/hyperion.config.json"
-	install -Dm 644 "${srcdir}/${pkgname%-git}/bin/service/hyperion.systemd.sh" "${pkgdir}/usr/lib/systemd/system/hyperiond.service"
+	install -Dm 644 "${srcdir}/${_pkgname}/config/hyperion.config.json.example" "${pkgdir}/etc/hyperion/hyperion.config.json"
+	install -Dm 644 "${srcdir}/${_pkgname}/bin/service/hyperion.systemd.sh" "${pkgdir}/usr/lib/systemd/system/hyperiond.service"
 	rm -rf "${pkgdir}/usr/share/hyperion/service"
 }
