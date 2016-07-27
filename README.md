@@ -127,7 +127,7 @@ sudo systemctl enable lightdm.service
 * Add `Notes`
 * Set `Tabs position` to `Top`
 * Set `Background` to `GTK+`
-* Set `Font` to `Monospace 12`
+* Set `Font` to `Monospace 10`
 
 #### Wallpaper
 * [Download the wallpaper](https://pixabay.com/en/glacier-mountain-snow-hillside-869593/)
@@ -369,6 +369,34 @@ git config --global user.name "$USER"
 
 #### Plugins
 * TODO
+
+#### Morituri
+My offset is 6.
+```
+rip cd rip --offset 6
+```
+
+#### Kodi
+
+##### No shutdown buttons
+Install `polkit`
+
+##### Video does not start properly
+Sometimes it happens that a video starts and hangs as the very first seconds.
+The menu is still visible and sometimes the audio starts to play but no video.
+If you switch to a list view instead of a poster view in the movie library
+all video should be playable again. This seems to be a kodi bug. It does not
+apply to all videos, just some and sometimes.
+
+##### Right Click Menu Key
+If the key does not work you can try holding enter longer.
+This will also give you the context menu.
+
+##### Disable Pulse-Eight CEC Adapter
+Go to System -> Input -> Peripherals -> Pulse-Eight CEC Adapter
+
+##### Blackborder Are Transparent
+https://github.com/archlinuxarm/PKGBUILDs/pull/1379
 
 #### Yaourt
 

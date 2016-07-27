@@ -19,7 +19,7 @@ fi
 
 # Basic packages
 PKG_BASIC+="wget base base-devel sudo bash-completion lsb-release htop "
-PKG_BASIC+="gnome-keyring unrar cfv bind-tools dosfstools "
+PKG_BASIC+="gnome-keyring unrar cfv bind-tools dosfstools rng-tools "
 
 # Install lts kernel + headers for x64 and dkms
 if [[ $CPU_X64 -eq 1 ]]; then
@@ -129,7 +129,7 @@ PKG_DESKTOP+="freetype2 libgsf libopenraw poppler-glib xfce4-screenshooter "
 PKG_APP+="firefox deja-dup thunderbird gnupg "
 PKG_APP+="libreoffice-fresh gnome-disk-utility evince gnome-calculator pinta "
 PKG_APP+="gparted gedit meld mousepad xfburn xfce4-screenshooter "
-PKG_APP+="gpicview gnome-system-monitor baobab "
+PKG_APP+="gpicview gnome-system-monitor baobab gnome-contacts "
 
 # Editor
 PKG_APP+="xfce4-notes-plugin "
@@ -138,14 +138,14 @@ PKG_APP+="xfce4-notes-plugin "
 PKG_APP+="uget aria2 "
 
 # Media
-PKG_APP+="udisks rhythmbox gst-libav vlc "
+PKG_APP+="udisks rhythmbox gst-libav vlc cdrdao morituri python2-pycdio "
 
 # Chat
 PKG_APP+="irssi pidgin aspell-en qtox "
 
 # x64 only
 if [[ $CPU_X64 -eq 1 ]]; then
-    PKG_APP+="kodi handbrake dolphin-emu "
+    PKG_APP+="kodi polkit handbrake dolphin-emu "
 
     # Install virtual box
     PKG_APP+="virtualbox virtualbox-host-dkms virtualbox-guest-iso "
@@ -158,7 +158,7 @@ fi
 
 # Raspberry Pi only
 if [[ $CPU_RPI -eq 1 ]]; then
-    PKG_APP+="kodi-rbp kodi-rbp-eventclients rng-tools wiringpi fake-hwclock"
+    PKG_APP+="kodi-rbp polkit wiringpi fake-hwclock"
 fi
 
 # Application alternatives
@@ -170,7 +170,8 @@ PKG_APP_ALT+="brasero gedit gnome-screenshot ristretto xfce4-taskmanager "
 ################################################################################
 
 # Development
-PKG_DEV+="git avr-gcc avrdude avr-libc libusb hidapi jdk8-openjdk jre8-openjdk vim namcap subversion bzr btrfs-progs "
+PKG_DEV+="git avr-gcc avrdude avr-libc libusb hidapi jdk8-openjdk jre8-openjdk "
+PKG_DEV+="vim namcap subversion bzr btrfs-progs shellcheck "
 
 # Optional
 PKG_OPT+="filezilla wine keepass bless puddletag openssh ethtool "

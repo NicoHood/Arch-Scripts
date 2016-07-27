@@ -37,7 +37,10 @@ dtparam=audio=on
 # Uncomment some or all of these to enable the optional hardware interfaces
 #dtparam=i2c_arm=on
 #dtparam=i2s=on
-dtparam=spi=on
+#dtparam=spi=on
+
+# Lirc
+#dtoverlay=lirc-rpi,gpio_out_pin=17,gpio_in_pin=18,gpio_in_pull=up
 
 # Get the monitor setting via
 # tvservice -n

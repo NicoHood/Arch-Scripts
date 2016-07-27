@@ -188,7 +188,7 @@ then
   echo "$preexecute"
 	echo "$execute"
   $preexecute
-  sleep 1
+  sleep 2
 	$execute
 else
 	echo "Error: No valid monitor selected."

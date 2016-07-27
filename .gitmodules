@@ -7,3 +7,21 @@
 [submodule "AUR/arduino"]
 	path = AUR/arduino
 	url = git+ssh://aur@aur.archlinux.org/arduino.git
+[submodule "AUR/morituri-git"]
+	path = AUR/morituri-git
+	url = https://aur.archlinux.org/morituri-git.git
+[submodule "AUR/python2-pyusb"]
+	path = AUR/python2-pyusb
+	url = https://aur.archlinux.org/python2-pyusb.git
+[submodule "AUR/python2-intelhex"]
+	path = AUR/python2-intelhex
+	url = https://aur.archlinux.org/python2-intelhex.git
+[submodule "AUR/arduino-git"]
+	path = AUR/arduino-git
+	url = ssh+git://aur@aur.archlinux.org/arduino-git.git
+[submodule "AUR/arduino-bin"]
+	path = AUR/arduino-bin
+	url = ssh+git://aur@aur.archlinux.org/arduino-bin.git
+[submodule "AUR/create_ap"]
+	path = AUR/create_ap
+	url = https://aur.archlinux.org/create_ap.git

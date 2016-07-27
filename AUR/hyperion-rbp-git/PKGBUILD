@@ -18,12 +18,12 @@ source=("${pkgname}::git+https://github.com/hyperion-project/hyperion#branch=Bet
 sha256sums=('SKIP')
 
 pkgver() {
-	cd "${srcdir}/${pkgname%-git}"
+	cd "${srcdir}/${pkgname}"
 	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 build() {
-	cd "${srcdir}/${pkgname%-git}"
+	cd "${srcdir}/${pkgname}"
 	git submodule init
 	git submodule update
 	mkdir -p build
@@ -34,10 +34,10 @@ build() {
 }
 
 package() {
-	cd "${srcdir}/${pkgname%-git}/build"
+	cd "${srcdir}/${pkgname}/build"
 	make install
 
-	install -Dm 644 "${srcdir}/${pkgname%-git}/config/hyperion.config.json.example" "${pkgdir}/etc/hyperion/hyperion.config.json"
-	install -Dm 644 "${srcdir}/${pkgname%-git}/bin/service/hyperion.systemd.sh" "${pkgdir}/usr/lib/systemd/system/hyperiond.service"
+	install -Dm 644 "${srcdir}/${pkgname}/config/hyperion.config.json.example" "${pkgdir}/etc/hyperion/hyperion.config.json"
+	install -Dm 644 "${srcdir}/${pkgname}/bin/service/hyperion.systemd.sh" "${pkgdir}/usr/lib/systemd/system/hyperiond.service"
 	rm -rf "${pkgdir}/usr/share/hyperion/service"
 }
