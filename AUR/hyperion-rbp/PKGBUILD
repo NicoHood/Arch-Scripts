@@ -19,7 +19,7 @@ source=("https://github.com/tvdzwan/${_pkgname}/archive/${pkgver}.tar.gz")
 sha512sums=('7406f5bdf323d2799fb375557603fefd1f077cda287b5aa9ff10251b22d8dd07590458515b0e01ef97fba80885aab1aa72bd8b5d26873ad8ebcc1ba53d6776ec')
 
 build() {
-	cd "${srcdir}/${_pkgname}"
+	cd "${srcdir}/${_pkgname}-${pkgver}"
 	git submodule init
 	git submodule update
 	mkdir -p build
@@ -30,7 +30,7 @@ build() {
 }
 
 package() {
-	cd "${srcdir}/${_pkgname}/build"
+	cd "${srcdir}/${_pkgname}-${pkgver}/build"
 	make install
 
 	install -Dm 644 "${srcdir}/${_pkgname}/config/hyperion.config.json.example" "${pkgdir}/etc/hyperion/hyperion.config.json"
