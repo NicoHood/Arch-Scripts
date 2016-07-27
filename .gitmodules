@@ -25,3 +25,6 @@
 [submodule "AUR/create_ap"]
 	path = AUR/create_ap
 	url = https://aur.archlinux.org/create_ap.git
+[submodule "AUR/hyperion"]
+	path = AUR/hyperion
+	url = ssh+git://aur@aur.archlinux.org/hyperion.git
