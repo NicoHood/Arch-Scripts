@@ -1,4 +1,0 @@
-post_install() {
-  echo 'Make sure to enable SPI in "/boot/config.txt":'
-  echo "dtparam=spi=on"
-}

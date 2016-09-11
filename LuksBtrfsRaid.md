@@ -26,23 +26,18 @@ sudo cryptsetup --key-file=/root/sda.key luksOpen /dev/sda hdd1
 sudo cryptsetup --key-file=/root/sdb.key luksOpen /dev/sdb hdd2
 
 # Create btrfs filesystem (raid0 for data, raid 1 for metadata)
-sudo mkfs.btrfs -L Raid -d raid0 -m raid1 /dev/mapper/hdd1 /dev/mapper/hdd2
-
-# Create mountpoint
-sudo mkdir -p /media/Raid
-
-# Mount any of the hdds
-sudo mount /dev/mapper/hdd2 /media/Raid
+sudo mkfs.btrfs -L raid -d raid0 -m raid1 /dev/mapper/hdd1 /dev/mapper/hdd2
 
 # Add permissions for other users to write to the (mounted) device
-sudo chmod 777 /media/Raid
+sudo mount /dev/mapper/hdd2 /mnt
+sudo chmod 777 /mnt
+sudo umount /mnt
 
 # As an alternative add a volume to an existing btrfs partition
-# Add new hdd, balance raid 0 and recompress
+# Add new hdd, balance raid0
 # sudo mkfs.btrfs /dev/mapper/hdd1
-# sudo btrfs device add /dev/mapper/hdd2 /media/Raid
-# sudo btrfs filesystem balance /media/Raid
-# sudo btrfs filesystem defragment -r -v -clzo /media/Raid
+# sudo btrfs device add /dev/mapper/hdd2 /mnt
+# sudo btrfs filesystem balance /mnt
 
 # Get the UUID of all drives
 SDA=$(sudo blkid /dev/sda -o value -s UUID)
@@ -54,15 +49,16 @@ sudo mv /root/sda.key /root/${SDA}.key
 sudo mv /root/sdb.key /root/${SDB}.key
 
 # Add disks to crypttab to unlock at boot
-# Use "nofail" as 2nd option to boot if the device is not available.
+# Use "nofail" as optional 2nd option to boot if the device is not available.
+# If it becomes online it will be mounted afterwards, but kodi will not recognize it.
 echo "" | sudo tee -a /etc/crypttab
 echo "# Encrypted media disks" | sudo tee -a /etc/crypttab
 echo "hdd1 UUID=${SDA} /root/${SDA}.key luks" | sudo tee -a /etc/crypttab
 echo "hdd2 UUID=${SDB} /root/${SDB}.key luks" | sudo tee -a /etc/crypttab
 
 # Mount at boot (you must use the UUID otherwise it will sometimes fail to mount)
-echo "UUID=${DM} /media/Raid btrfs defaults,compress=lzo 0 0" | sudo tee -a /etc/fstab
+echo "UUID=${DM} /run/media/raid btrfs defaults,nofail 0 0" | sudo tee -a /etc/fstab
 
-# Reboot the system. It will take some time untill all drives are decrypted and mounted
+# Reboot the system. It will take some time until all drives are decrypted and mounted
 sudo reboot
 ```

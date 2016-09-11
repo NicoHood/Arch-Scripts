@@ -17,6 +17,20 @@ temp_limit=70
 [pi3]
 
 [all]
+# When using initramfs
+#initramfs initrd followkernel
+
+# Enable audio (loads snd_bcm2835)
+dtparam=audio=on
+
+# Uncomment some or all of these to enable the optional hardware interfaces
+#dtparam=i2c_arm=on
+#dtparam=i2s=on
+#dtparam=spi=on
+
+# Lirc
+#dtoverlay=lirc-rpi,gpio_out_pin=17,gpio_in_pin=18,gpio_in_pull=up
+
 # General display setting
 disable_overscan=1
 hdmi_force_hotplug=1
@@ -31,20 +45,10 @@ framebuffer_ignore_alpha=1
 # Allocate more gpu mem for kodi
 gpu_mem=128
 
-# Enable audio (loads snd_bcm2835)
-dtparam=audio=on
-
-# Uncomment some or all of these to enable the optional hardware interfaces
-#dtparam=i2c_arm=on
-#dtparam=i2s=on
-#dtparam=spi=on
-
-# Lirc
-#dtoverlay=lirc-rpi,gpio_out_pin=17,gpio_in_pin=18,gpio_in_pull=up
-
 # Get the monitor setting via
 # tvservice -n
 # /opt/vc/bin/tvservice -n
+
 [EDID=ACR-M230HDL]
 # DVI Monitor Mode
 hdmi_drive=1
@@ -60,3 +64,6 @@ hdmi_drive=1
 
 [EDID=SAM-SAMSUNG]
 hdmi_drive=2
+
+[EDIT=SZM-MON-SIS289]
+hdmi_group=1

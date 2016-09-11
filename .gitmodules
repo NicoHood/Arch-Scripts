@@ -10,9 +10,6 @@
 [submodule "AUR/morituri-git"]
 	path = AUR/morituri-git
 	url = https://aur.archlinux.org/morituri-git.git
-[submodule "AUR/python2-pyusb"]
-	path = AUR/python2-pyusb
-	url = https://aur.archlinux.org/python2-pyusb.git
 [submodule "AUR/python2-intelhex"]
 	path = AUR/python2-intelhex
 	url = https://aur.archlinux.org/python2-intelhex.git
@@ -28,3 +25,30 @@
 [submodule "AUR/hyperion"]
 	path = AUR/hyperion
 	url = ssh+git://aur@aur.archlinux.org/hyperion.git
+[submodule "AUR/spotify"]
+	path = AUR/spotify
+	url = https://aur.archlinux.org/spotify.git
+[submodule "AUR/libcurl-compat"]
+	path = AUR/libcurl-compat
+	url = https://aur.archlinux.org/libcurl-compat.git
+[submodule "AUR/bing-wallpaper-git"]
+	path = AUR/bing-wallpaper-git
+	url = https://aur.archlinux.org/bing-wallpaper-git.git
+[submodule "AUR/python2-pyqrcode"]
+	path = AUR/python2-pyqrcode
+	url = https://aur.archlinux.org/python2-pyqrcode.git
+[submodule "AUR/linux-mainline"]
+	path = AUR/linux-mainline
+	url = https://aur.archlinux.org/linux-mainline.git
+[submodule "AUR/ipod-shuffle-4g"]
+	path = AUR/ipod-shuffle-4g
+	url = ssh://aur@aur.archlinux.org/ipod-shuffle-4g.git
+[submodule "AUR/python2-pyusb"]
+	path = AUR/python2-pyusb
+	url = ssh://aur@aur.archlinux.org/python2-pyusb.git
+[submodule "AUR/whipper-git"]
+	path = AUR/whipper-git
+	url = https://aur.archlinux.org/whipper-git.git
+[submodule "AUR/python-pyusb"]
+	path = AUR/python-pyusb
+	url = ssh://aur@aur.archlinux.org/python-pyusb.git

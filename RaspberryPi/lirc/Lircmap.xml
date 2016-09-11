@@ -69,7 +69,7 @@
   <record>KEY_RECORD</record>
   <start></start>
 
-  <star>KEY_NEXT</star>
+  <star>KEY_NEW</star>
   <hash></hash>
   <clear>KEY_FAVORITES</clear>
   <enter></enter>

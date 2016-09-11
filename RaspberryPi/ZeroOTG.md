@@ -1,5 +1,7 @@
 # ZeroOTG
 
+TODO does not work
+
 #### /boot/config.txt
 ```
 dtoverlay=dwc2
